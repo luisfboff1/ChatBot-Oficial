@@ -1,0 +1,81 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import { MetricsDashboard } from '@/components/MetricsDashboard'
+import { ConversationList } from '@/components/ConversationList'
+import { useConversations } from '@/hooks/useConversations'
+import type { DashboardMetrics } from '@/lib/types'
+import { Separator } from '@/components/ui/separator'
+
+const DEFAULT_CLIENT_ID = 'demo-client-id'
+
+export default function DashboardPage() {
+  const [metrics, setMetrics] = useState<DashboardMetrics>({
+    total_conversations: 0,
+    active_conversations: 0,
+    waiting_human: 0,
+    messages_today: 0,
+    total_cost_month: 0,
+  })
+  const [metricsLoading, setMetricsLoading] = useState(true)
+
+  const { conversations, loading } = useConversations({
+    clientId: DEFAULT_CLIENT_ID,
+    limit: 50,
+    refreshInterval: 10000,
+  })
+
+  useEffect(() => {
+    const calculateMetrics = () => {
+      const totalConversations = conversations.length
+      const activeConversations = conversations.filter(
+        (c) => c.status === 'bot'
+      ).length
+      const waitingHuman = conversations.filter(
+        (c) => c.status === 'waiting' || c.status === 'human'
+      ).length
+
+      const totalMessages = conversations.reduce(
+        (sum, c) => sum + c.message_count,
+        0
+      )
+
+      const estimatedCost = totalMessages * 0.001
+
+      setMetrics({
+        total_conversations: totalConversations,
+        active_conversations: activeConversations,
+        waiting_human: waitingHuman,
+        messages_today: totalMessages,
+        total_cost_month: estimatedCost,
+      })
+
+      setMetricsLoading(false)
+    }
+
+    if (!loading) {
+      calculateMetrics()
+    }
+  }, [conversations, loading])
+
+  return (
+    <div className="space-y-8">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+        <p className="text-muted-foreground">
+          Visão geral das conversas WhatsApp
+        </p>
+      </div>
+
+      <Separator />
+
+      <MetricsDashboard metrics={metrics} loading={metricsLoading} />
+
+      <ConversationList
+        conversations={conversations}
+        loading={loading}
+        clientId={DEFAULT_CLIENT_ID}
+      />
+    </div>
+  )
+}
