@@ -52,17 +52,22 @@ npm install
 
 ### 2. Configurar Banco de Dados
 
-Execute o arquivo `migration.sql` no Supabase SQL Editor:
+Execute os arquivos de migration no Supabase SQL Editor:
 
 1. Acesse: https://app.supabase.com/project/_/sql
-2. Cole o conteúdo de `migration.sql`
-3. Execute o script
+2. Execute na ordem:
+   - `db/migration.sql` - Tabelas principais do dashboard
+   - `migrations/002_execution_logs.sql` - Logs de execução (opcional)
+   - `migrations/003_optimize_clientes_whatsapp.sql` - **IMPORTANTE**: Otimização de performance
 
 Isso criará as tabelas necessárias:
 - `clients` - Configuração multi-tenant
 - `conversations` - Estado das conversas
 - `messages` - Mensagens individuais
 - `usage_logs` - Tracking de custos
+- `execution_logs` - Logs de debug (opcional)
+
+**⚠️ Performance**: A migration `003_optimize_clientes_whatsapp.sql` é **CRÍTICA** para evitar lentidão nas queries da tabela "Clientes WhatsApp". Veja [SOLUCAO-QUERY-LENTA.md](./explicacoes/SOLUCAO-QUERY-LENTA.md) para detalhes.
 
 ### 3. Configurar Variáveis de Ambiente
 
