@@ -84,6 +84,7 @@ Check your logs for these indicators:
    - Queries should complete in < 1s typically
    - If queries consistently take > 5s, investigate database performance
    - Add indexes on frequently queried columns
+   - **⚠️ IMPORTANT**: If experiencing slow queries on "Clientes WhatsApp" table, see [SOLUCAO-QUERY-LENTA.md](./explicacoes/SOLUCAO-QUERY-LENTA.md) for optimization steps
 
 2. **Database Connection Limits**
    - Supabase free tier: 100 concurrent connections
@@ -99,6 +100,90 @@ Check your logs for these indicators:
    - For read-heavy operations, consider using Supabase's REST API
    - REST API is stateless and doesn't require connection pooling
    - Good for simple CRUD operations
+
+### Still Having Issues?
+
+If connection timeouts persist:
+
+1. **Check Database Load**
+   - Go to Supabase Dashboard → Database → Query Performance
+   - Look for slow queries or high CPU usage
+
+2. **Verify Network Connectivity**
+   - Ensure firewall rules allow connections from Vercel IPs
+   - Check if database is accessible from your deployment region
+
+3. **Increase Vercel Function Timeout**
+   - Default is 10s for Hobby tier
+   - Pro tier allows up to 60s for Edge Functions, 300s for Serverless Functions
+   - Enterprise tier offers extended limits
+   - May need to upgrade plan for longer-running operations
+   - See: https://vercel.com/docs/functions/serverless-functions/runtimes#max-duration
+
+4. **Contact Support**
+   - Supabase: support@supabase.io
+   - Vercel: vercel.com/support
+   - Include error logs and request IDs
+
+## Query Performance Issues
+
+### Slow "Clientes WhatsApp" Query
+
+**Symptoms:**
+- Query `SELECT * FROM "Clientes WhatsApp" WHERE telefone = $1 LIMIT 1` takes > 5 seconds
+- WhatsApp webhook gets stuck during customer lookup
+- Messages not being processed
+- Logs show: `[Postgres] 🔍 Query: SELECT * FROM "Clientes WhatsApp"...` with no completion
+
+**Root Causes:**
+- Missing or corrupted database indexes
+- Row Level Security (RLS) overhead
+- Outdated PostgreSQL statistics
+- Table fragmentation from many updates/deletes
+- Transaction locks from concurrent operations
+
+**Solution:**
+
+Execute the performance optimization migration:
+
+1. **Navigate to Supabase SQL Editor:**
+   - https://app.supabase.com/project/_/sql
+
+2. **Run the optimization migration:**
+   - Open file: `migrations/003_optimize_clientes_whatsapp.sql`
+   - Copy entire contents
+   - Paste into SQL Editor
+   - Click "Run"
+
+3. **Verify results:**
+   ```sql
+   -- Check indexes created
+   SELECT indexname FROM pg_indexes 
+   WHERE tablename = 'Clientes WhatsApp';
+   
+   -- Test query performance
+   EXPLAIN ANALYZE 
+   SELECT * FROM "Clientes WhatsApp" 
+   WHERE telefone = '555499250023' 
+   LIMIT 1;
+   -- Should show: Execution Time < 10ms
+   ```
+
+**What the migration does:**
+- ✅ Verifies and optimizes PRIMARY KEY index on `telefone`
+- ✅ Adds index on `status` column for filtered queries
+- ✅ Disables RLS (not needed for service_role)
+- ✅ Updates table statistics with ANALYZE
+- ✅ Runs VACUUM to clean up dead rows
+- ✅ Sets optimal fillfactor for updates
+- ✅ Creates monitoring view `v_clientes_whatsapp_stats`
+
+**Expected Results:**
+- Query execution: < 10ms (vs 5+ seconds before)
+- Immediate webhook processing
+- 100% message processing success rate
+
+**Detailed troubleshooting:** See [SOLUCAO-QUERY-LENTA.md](./explicacoes/SOLUCAO-QUERY-LENTA.md)
 
 ### Still Having Issues?
 
