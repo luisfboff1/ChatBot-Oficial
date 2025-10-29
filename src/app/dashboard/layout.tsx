@@ -1,4 +1,4 @@
-import { MessageSquare, LayoutDashboard, LogOut } from 'lucide-react'
+import { MessageSquare, LayoutDashboard, Settings } from 'lucide-react'
 import Link from 'next/link'
 import { Separator } from '@/components/ui/separator'
 import { getCurrentUser } from '@/lib/supabase-server'
@@ -55,6 +55,14 @@ export default async function DashboardLayout({
           >
             <MessageSquare className="h-5 w-5" />
             <span className="font-medium">Conversas</span>
+          </Link>
+
+          <Link
+            href="/dashboard/settings"
+            className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors"
+          >
+            <Settings className="h-5 w-5" />
+            <span className="font-medium">Configurações</span>
           </Link>
         </nav>
 
