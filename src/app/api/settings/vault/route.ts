@@ -39,9 +39,9 @@ export async function GET(request: NextRequest) {
     // 3. Get client record with secret IDs
     const { data: client, error: clientError } = await supabase
       .from('clients')
-      .select('*')
+      .select('id, slug, meta_access_token_secret_id, meta_verify_token_secret_id, meta_phone_number_id, openai_api_key_secret_id, groq_api_key_secret_id')
       .eq('id', clientId)
-      .single() as { data: any; error: any }
+      .single()
 
     if (clientError || !client) {
       return NextResponse.json(
@@ -124,9 +124,9 @@ export async function POST(request: NextRequest) {
     // 4. Get client record
     const { data: client, error: clientError } = await supabase
       .from('clients')
-      .select('*')
+      .select('id, slug, meta_access_token_secret_id, meta_verify_token_secret_id, meta_phone_number_id, openai_api_key_secret_id, groq_api_key_secret_id')
       .eq('id', clientId)
-      .single() as { data: any; error: any }
+      .single()
 
     if (clientError || !client) {
       return NextResponse.json(
@@ -139,7 +139,7 @@ export async function POST(request: NextRequest) {
     const updates: Record<string, any> = {}
 
     // Meta Access Token
-    if (metaAccessToken !== undefined && metaAccessToken !== null) {
+    if (metaAccessToken != null) {
       if (client.meta_access_token_secret_id) {
         // Update existing secret
         await updateSecret(client.meta_access_token_secret_id, metaAccessToken)
@@ -151,7 +151,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Meta Verify Token
-    if (metaVerifyToken !== undefined && metaVerifyToken !== null) {
+    if (metaVerifyToken != null) {
       if (client.meta_verify_token_secret_id) {
         await updateSecret(client.meta_verify_token_secret_id, metaVerifyToken)
       } else {
@@ -161,12 +161,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Meta Phone Number ID (não é secret, atualiza diretamente)
-    if (metaPhoneNumberId !== undefined && metaPhoneNumberId !== null) {
+    if (metaPhoneNumberId != null) {
       updates.meta_phone_number_id = metaPhoneNumberId
     }
 
     // OpenAI API Key
-    if (openaiApiKey !== undefined && openaiApiKey !== null) {
+    if (openaiApiKey != null) {
       if (client.openai_api_key_secret_id) {
         await updateSecret(client.openai_api_key_secret_id, openaiApiKey)
       } else {
@@ -176,7 +176,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Groq API Key
-    if (groqApiKey !== undefined && groqApiKey !== null) {
+    if (groqApiKey != null) {
       if (client.groq_api_key_secret_id) {
         await updateSecret(client.groq_api_key_secret_id, groqApiKey)
       } else {

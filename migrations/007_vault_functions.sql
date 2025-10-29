@@ -152,4 +152,8 @@ GRANT EXECUTE ON FUNCTION delete_client_secret(UUID) TO authenticated;
 --    - meta_verify_token_secret_id
 --    - openai_api_key_secret_id
 --    - groq_api_key_secret_id
+-- 6. SECURITY: The API layer enforces that users can only access secrets
+--    belonging to their own client_id. The functions themselves are granted
+--    to 'authenticated' role for flexibility, but the application logic
+--    (getClientIdFromSession) ensures proper tenant isolation.
 -- =====================================================
