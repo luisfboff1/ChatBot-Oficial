@@ -5,13 +5,9 @@ import { useRouter } from 'next/navigation'
 import { Analytics } from '@vercel/analytics/react'
 import { useAuth } from '@/contexts/auth-context'
 import { Hero } from '@/components/landing/Hero'
-import { WhyUs } from '@/components/landing/WhyUs'
-import { ProductOverview } from '@/components/landing/ProductOverview'
-import { Benefits } from '@/components/landing/Benefits'
-import { Metrics } from '@/components/landing/Metrics'
-import { Industries } from '@/components/landing/Industries'
-import { Journey } from '@/components/landing/Journey'
-import { FAQ } from '@/components/landing/FAQ'
+import { Highlights } from '@/components/landing/Highlights'
+import { Plans } from '@/components/landing/Plans'
+import { Security } from '@/components/landing/Security'
 import { FinalCTA } from '@/components/landing/FinalCTA'
 
 export default function HomePage() {
@@ -28,13 +24,9 @@ export default function HomePage() {
     <main className="relative min-h-screen overflow-hidden bg-background text-foreground">
       <Analytics />
       <Hero />
-      <WhyUs />
-      <ProductOverview />
-      <Benefits />
-      <Metrics />
-      <Industries />
-      <Journey />
-      <FAQ />
+      <Highlights />
+      <Plans />
+      <Security />
       <FinalCTA />
     </main>
   )
