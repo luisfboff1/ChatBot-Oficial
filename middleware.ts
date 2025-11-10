@@ -69,16 +69,42 @@ export async function middleware(request: NextRequest) {
     }
   )
 
+  const pathname = request.nextUrl.pathname
+
+  // Rotas públicas (landing, auth, marketing) não precisam de verificação
+  const publicRoutes = new Set([
+    '/',
+    '/login',
+    '/register',
+    '/contato',
+    '/servicos',
+    '/servicos/chatbot-empresarial',
+  ])
+
+  if (publicRoutes.has(pathname) || pathname.startsWith('/public')) {
+    return response
+  }
+
   // Refresh session (importante para manter usuário logado)
   const {
     data: { user },
   } = await supabase.auth.getUser()
 
   // Protected routes: /dashboard/*
-  if (request.nextUrl.pathname.startsWith('/dashboard')) {
+  if (pathname.startsWith('/dashboard')) {
     if (!user) {
       // Usuário não autenticado - redirecionar para login
       const loginUrl = new URL('/login', request.url)
+
+      const hasAuthCookies =
+        request.cookies.has('sb-access-token') || request.cookies.has('sb-refresh-token')
+
+      if (hasAuthCookies) {
+        loginUrl.searchParams.set('expired', 'true')
+      }
+
+      loginUrl.searchParams.set('redirect', pathname)
+
       console.log('[middleware] Usuário não autenticado, redirecionando para /login')
       return NextResponse.redirect(loginUrl)
     }
@@ -115,9 +141,18 @@ export async function middleware(request: NextRequest) {
   }
 
   // Admin-only routes: /admin/*
-  if (request.nextUrl.pathname.startsWith('/admin')) {
+  if (pathname.startsWith('/admin')) {
     if (!user) {
       const loginUrl = new URL('/login', request.url)
+      const hasAuthCookies =
+        request.cookies.has('sb-access-token') || request.cookies.has('sb-refresh-token')
+
+      if (hasAuthCookies) {
+        loginUrl.searchParams.set('expired', 'true')
+      }
+
+      loginUrl.searchParams.set('redirect', pathname)
+
       return NextResponse.redirect(loginUrl)
     }
 
@@ -159,15 +194,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - api (API routes - handled separately)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - login (login page)
-     */
-    '/((?!api|_next/static|_next/image|favicon.ico|login).*)',
-  ],
+  matcher: ['/dashboard/:path*', '/admin/:path*'],
 }

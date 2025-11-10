@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Explorações de Fundos em Degradê — UZZ.AI</title>
+  <style>
+    body {
+      margin: 0;
+      background: #05080c;
+      color: transparent;
+    }
+
+    main {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .page {
+      position: relative;
+      width: 100%;
+      min-height: 300vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      display: flex;
+      isolation: isolate;
+    }
+
+    /* ------------------------------------------------------------------
+       Páginas — Gradientes específicos
+       ------------------------------------------------------------------ */
+    .page-mint-black {
+      background: radial-gradient(circle at 15% 20%, rgba(26, 188, 156, 0.65), transparent 55%),
+                  radial-gradient(circle at 85% 15%, rgba(46, 134, 171, 0.55), transparent 50%),
+                  linear-gradient(135deg, #05080c 10%, #0f1a1a 45%, #141f24 100%);
+    }
+
+    .page-mint-black::after {
+      background: linear-gradient(120deg, rgba(26, 188, 156, 0.35), transparent 65%);
+    }
+
+    .page-aurora {
+      background: conic-gradient(from 210deg at 20% 20%, rgba(46, 134, 171, 0.85), rgba(26, 188, 156, 0.55), rgba(255, 215, 0, 0.38), rgba(28, 28, 28, 0.95), rgba(46, 134, 171, 0.85));
+    }
+
+    .page-aurora::after {
+      background: radial-gradient(circle at 50% 90%, rgba(255, 215, 0, 0.4), transparent 60%);
+    }
+
+    .page-gold-premium {
+      background: linear-gradient(140deg, #0d0f13 0%, #141820 28%, #1f1d17 55%, #3d2a05 100%);
+    }
+
+    .page-gold-premium::after {
+      background: radial-gradient(circle at 25% 30%, rgba(255, 215, 0, 0.55), transparent 55%);
+    }
+
+    .page-cosmic {
+      background: radial-gradient(circle at 50% -10%, rgba(46, 134, 171, 0.7), transparent 60%),
+                  linear-gradient(160deg, #050912 0%, #101c30 45%, #1f1440 100%);
+    }
+
+    .page-cosmic::after {
+      background: radial-gradient(circle at 80% 80%, rgba(26, 188, 156, 0.4), transparent 55%);
+    }
+
+    .page-midnight {
+      background: linear-gradient(125deg, #07090d 0%, #10151c 40%, #1c2733 75%, #102427 100%);
+    }
+
+    .page-midnight::after {
+      background: radial-gradient(circle at 10% 80%, rgba(26, 188, 156, 0.5), transparent 60%);
+    }
+
+    .page-digital-silk {
+      background: radial-gradient(circle at 15% 20%, rgba(26, 188, 156, 0.55), transparent 45%),
+                  radial-gradient(circle at 85% 30%, rgba(176, 176, 176, 0.35), transparent 55%),
+                  linear-gradient(155deg, #090b11 0%, #0f111a 38%, #1a1d26 100%);
+    }
+
+    .page-digital-silk::after {
+      background: linear-gradient(210deg, rgba(176, 176, 176, 0.25), transparent 70%);
+    }
+
+    .page-neon-wave {
+      background: conic-gradient(from 120deg at 30% 40%, rgba(26, 188, 156, 0.6), rgba(46, 134, 171, 0.6), rgba(28, 28, 28, 0.9), rgba(26, 188, 156, 0.6));
+    }
+
+    .page-neon-wave::after {
+      background: radial-gradient(circle at 70% 80%, rgba(46, 134, 171, 0.35), transparent 65%);
+    }
+
+    .page-solar-ai {
+      background: radial-gradient(circle at 20% 20%, rgba(255, 215, 0, 0.45), transparent 55%),
+                  radial-gradient(circle at 80% 30%, rgba(26, 188, 156, 0.45), transparent 60%),
+                  linear-gradient(160deg, #07090d 0%, #12161d 40%, #1f1f24 100%);
+    }
+
+    .page-solar-ai::after {
+      background: linear-gradient(145deg, rgba(46, 134, 171, 0.45), transparent 65%);
+    }
+
+    .page-hypergrid {
+      background:
+        conic-gradient(from 45deg at 50% 50%, rgba(26, 188, 156, 0.55), rgba(28, 28, 28, 0.92), rgba(46, 134, 171, 0.45), rgba(255, 215, 0, 0.33), rgba(26, 188, 156, 0.55)),
+        linear-gradient(110deg, rgba(28, 28, 28, 0.95) 10%, rgba(15, 23, 42, 0.85) 55%, rgba(4, 12, 18, 1) 100%);
+      background-blend-mode: screen, normal;
+    }
+
+    .page-hypergrid::after {
+      background:
+        linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, transparent 60%),
+        radial-gradient(circle at 30% 20%, rgba(46, 134, 171, 0.45), transparent 55%);
+    }
+
+    .page-quantum-mist {
+      background:
+        radial-gradient(circle at 20% 30%, rgba(176, 176, 176, 0.35), transparent 50%),
+        radial-gradient(circle at 80% 25%, rgba(46, 134, 171, 0.55), transparent 55%),
+        linear-gradient(160deg, rgba(5, 8, 12, 1) 0%, rgba(12, 18, 24, 0.95) 45%, rgba(26, 188, 156, 0.28) 100%);
+    }
+
+    .page-quantum-mist::after {
+      background:
+        linear-gradient(200deg, rgba(26, 188, 156, 0.3), transparent 70%),
+        radial-gradient(circle at 50% 80%, rgba(255, 215, 0, 0.25), transparent 60%);
+    }
+
+    .page-lumen-core {
+      background:
+        radial-gradient(circle at 35% 50%, rgba(255, 215, 0, 0.45), transparent 60%),
+        radial-gradient(circle at 65% 45%, rgba(26, 188, 156, 0.55), transparent 60%),
+        radial-gradient(circle at 50% 15%, rgba(46, 134, 171, 0.5), transparent 55%),
+        linear-gradient(125deg, rgba(7, 9, 13, 1) 0%, rgba(16, 23, 33, 0.95) 55%, rgba(12, 34, 40, 0.85) 100%);
+    }
+
+    .page-lumen-core::after {
+      background:
+        linear-gradient(145deg, rgba(255, 255, 255, 0.08), transparent 65%),
+        radial-gradient(circle at 80% 85%, rgba(26, 188, 156, 0.4), transparent 60%);
+    }
+
+    .page-stellar-ribbon {
+      background:
+        conic-gradient(from 90deg at 30% 70%, rgba(46, 134, 171, 0.55), rgba(26, 188, 156, 0.45), rgba(28, 28, 28, 0.95), rgba(176, 176, 176, 0.25), rgba(46, 134, 171, 0.55)),
+        linear-gradient(170deg, rgba(5, 7, 11, 1) 0%, rgba(10, 17, 26, 0.96) 40%, rgba(16, 28, 41, 0.9) 100%);
+    }
+
+    .page-stellar-ribbon::after {
+      background:
+        radial-gradient(circle at 75% 25%, rgba(255, 215, 0, 0.33), transparent 55%),
+        linear-gradient(110deg, rgba(26, 188, 156, 0.25), transparent 60%);
+    }
+
+    .page-emerald-vortex {
+      background:
+        radial-gradient(circle at 20% 20%, rgba(26, 188, 156, 0.55), transparent 50%),
+        conic-gradient(from 180deg at 80% 40%, rgba(12, 43, 40, 0.7), rgba(5, 12, 20, 0.95), rgba(46, 134, 171, 0.45), rgba(26, 188, 156, 0.4)),
+        linear-gradient(155deg, rgba(6, 10, 14, 1) 0%, rgba(9, 18, 24, 0.92) 50%, rgba(14, 32, 36, 0.85) 100%);
+    }
+
+    .page-emerald-vortex::after {
+      background:
+        linear-gradient(135deg, rgba(255, 255, 255, 0.05), transparent 70%),
+        radial-gradient(circle at 55% 80%, rgba(176, 176, 176, 0.25), transparent 55%);
+    }
+
+    @media print {
+      .page {
+        page-break-after: always;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="page page-mint-black"></section>
+    <section class="page page-aurora"></section>
+    <section class="page page-gold-premium"></section>
+    <section class="page page-cosmic"></section>
+    <section class="page page-midnight"></section>
+    <section class="page page-digital-silk"></section>
+    <section class="page page-neon-wave"></section>
+    <section class="page page-solar-ai"></section>
+    <section class="page page-hypergrid"></section>
+    <section class="page page-quantum-mist"></section>
+    <section class="page page-lumen-core"></section>
+    <section class="page page-stellar-ribbon"></section>
+    <section class="page page-emerald-vortex"></section>
+  </main>
+</body>
+</html>
+

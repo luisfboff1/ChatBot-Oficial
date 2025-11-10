@@ -1,9 +1,7 @@
 import type { Metadata } from 'next'
-// import { Inter } from 'next/font/google'
 import './globals.css'
 import { Toaster } from '@/components/ui/toaster'
-
-// const inter = Inter({ subsets: ['latin'] })
+import { AppProviders } from './providers'
 
 export const metadata: Metadata = {
   title: 'ChatBot Dashboard - WhatsApp SaaS',
@@ -23,14 +21,14 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <head>
-        {/* Fallback link for browsers that don't read metadata.icons */}
         <link rel="icon" href="/favcon.ico" />
         <link rel="shortcut icon" href="/favcon.ico" />
-        {/* If you prefer an ICO file, place it at /public/favicon.ico and the browser will pick it up */}
       </head>
-      <body>
-        {children}
-        <Toaster />
+      <body className="min-h-screen bg-background text-foreground">
+        <AppProviders>
+          {children}
+          <Toaster />
+        </AppProviders>
       </body>
     </html>
   )

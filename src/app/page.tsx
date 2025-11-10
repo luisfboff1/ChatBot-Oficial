@@ -1,31 +1,41 @@
-import { redirect } from 'next/navigation'
-import { getCurrentUser } from '@/lib/supabase-server'
+'use client'
 
-// Marcar como rota dinâmica (não pode ser estática porque usa cookies)
-export const dynamic = 'force-dynamic'
+import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { Analytics } from '@vercel/analytics/react'
+import { useAuth } from '@/contexts/auth-context'
+import { Hero } from '@/components/landing/Hero'
+import { WhyUs } from '@/components/landing/WhyUs'
+import { ProductOverview } from '@/components/landing/ProductOverview'
+import { Benefits } from '@/components/landing/Benefits'
+import { Metrics } from '@/components/landing/Metrics'
+import { Industries } from '@/components/landing/Industries'
+import { Journey } from '@/components/landing/Journey'
+import { FAQ } from '@/components/landing/FAQ'
+import { FinalCTA } from '@/components/landing/FinalCTA'
 
-/**
- * Home Page - Server Component
- *
- * FASE 3: Agora redireciona para login se não autenticado
- *
- * Lógica:
- * - Se usuário autenticado → /dashboard
- * - Se não autenticado → /login
- * - Se erro → /login
- */
-export default async function HomePage() {
-  try {
-    const user = await getCurrentUser()
+export default function HomePage() {
+  const router = useRouter()
+  const { user, loading } = useAuth()
 
-    if (user) {
-      redirect('/dashboard')
-    } else {
-      redirect('/login')
+  useEffect(() => {
+    if (!loading && user) {
+      router.replace('/dashboard')
     }
-  } catch (error) {
-    // Se houver erro ao buscar usuário, redirecionar para login
-    console.error('[HomePage] Erro ao verificar autenticação:', error)
-    redirect('/login')
-  }
+  }, [loading, user, router])
+
+  return (
+    <main className="relative min-h-screen overflow-hidden bg-background text-foreground">
+      <Analytics />
+      <Hero />
+      <WhyUs />
+      <ProductOverview />
+      <Benefits />
+      <Metrics />
+      <Industries />
+      <Journey />
+      <FAQ />
+      <FinalCTA />
+    </main>
+  )
 }
