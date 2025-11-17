@@ -38,16 +38,20 @@ export function Security() {
           </p>
 
           <div className="grid gap-4 md:grid-cols-2">
-            {securityItems.map(({ title, description, icon: Icon }) => (
-              <Card
-                key={title}
-                className="flex h-full flex-col gap-2 border border-azure-500/20 bg-surface/80 p-4 shadow-glow"
-              >
-                <Icon className="h-5 w-5 text-mint-200" aria-hidden />
-                <h3 className="text-sm font-semibold text-foreground">{title}</h3>
-                <p className="text-sm text-foreground/70">{description}</p>
-              </Card>
-            ))}
+            {securityItems.map(({ title, description, icon: Icon }, idx) => {
+              const headingId = `security-title-${idx}`;
+              return (
+                <Card
+                  key={title}
+                  className="flex h-full flex-col gap-2 border border-azure-500/20 bg-surface/80 p-4 shadow-glow"
+                  aria-labelledby={headingId}
+                >
+                  <Icon className="h-5 w-5 text-mint-200" aria-hidden />
+                  <h3 id={headingId} className="text-sm font-semibold text-foreground">{title}</h3>
+                  <p className="text-sm text-foreground/70">{description}</p>
+                </Card>
+              );
+            })}
           </div>
         </div>
 
