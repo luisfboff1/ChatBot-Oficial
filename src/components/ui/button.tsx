@@ -29,7 +29,7 @@ const buttonVariants = cva(
         outlineMint:
           "border border-mint-500/60 text-mint-300 hover:border-mint-200 hover:text-mint-100 hover:bg-mint-500/10",
         premium:
-          "bg-gradient-premium text-ink-900 shadow-glow hover:-translate-y-[2px] hover:shadow-glow",
+          "bg-gradient-premium text-foreground shadow-glow hover:-translate-y-[2px] hover:shadow-glow",
       },
       size: {
         default: "h-10 px-4 py-2",

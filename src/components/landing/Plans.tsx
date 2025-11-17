@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { designTokens } from '@/lib/design-tokens'
 import { Card } from '@/components/ui/card'
-import { Button, buttonVariants } from '@/components/ui/button'
+import { buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
 const plans = [
