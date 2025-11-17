@@ -27,7 +27,14 @@ function LoginPageContent() {
   const [error, setError] = useState<string | null>(null)
   const [showPassword, setShowPassword] = useState(false)
   const sessionExpired = useMemo(() => searchParams?.get('expired') === 'true', [searchParams])
-  const redirectTo = useMemo(() => searchParams?.get('redirect') ?? '/dashboard', [searchParams])
+  const redirectTo = useMemo(() => {
+    const redirect = searchParams?.get('redirect') ?? '/dashboard'
+    // Only allow relative paths starting with a single /
+    if (redirect.startsWith('/') && !redirect.startsWith('//')) {
+      return redirect
+    }
+    return '/dashboard'
+  }, [searchParams])
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
