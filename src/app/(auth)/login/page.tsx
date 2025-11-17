@@ -1,93 +1,95 @@
 'use client'
 
-import { useEffect, useMemo, useState, type FormEvent } from 'react'
+import { useMemo, useState, type FormEvent } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Eye, EyeOff, AlertCircle } from 'lucide-react'
-import { useAuth } from '@/contexts/auth-context'
+import { signInWithEmail } from '@/lib/supabase-browser'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
 /**
- * Página de Login - agora integrada ao AuthContext.
+ * Página de Login - Server-side Auth
  *
- * Features atuais:
- * - Login com email/senha usando AuthProvider
- * - Preparada para SSO (Google/Microsoft) através do AuthProvider
+ * Features:
+ * - Login com email/senha usando Supabase Auth
  * - Feedback de sessão expirada via query (?expired=true)
- * - Redireciona para dashboard caso usuário já esteja autenticado
+ * - Verifica profile antes de redirecionar
  */
 export default function LoginPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
 
-  const { login, loginWithGoogle, loginWithMicrosoft, user, loading: authLoading } = useAuth()
-
   const [formData, setFormData] = useState({ email: '', password: '' })
-  const [formLoading, setFormLoading] = useState(false)
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [showPassword, setShowPassword] = useState(false)
   const sessionExpired = useMemo(() => searchParams?.get('expired') === 'true', [searchParams])
   const redirectTo = useMemo(() => searchParams?.get('redirect') ?? '/dashboard', [searchParams])
 
-  useEffect(() => {
-    if (!authLoading && user) {
-      router.replace(redirectTo)
-    }
-  }, [authLoading, user, redirectTo, router])
-
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setError(null)
-    setFormLoading(true)
+    setLoading(true)
 
     try {
-      await login(formData)
-      router.replace(redirectTo)
-    } catch (err) {
-      console.error('[Login] erro:', err)
-      const message =
-        err instanceof Error ? err.message : 'Erro inesperado ao fazer login. Tente novamente.'
-
-      if (message.includes('Invalid login credentials')) {
-        setError('Email ou senha incorretos')
-      } else if (message.includes('Email not confirmed')) {
-        setError('Email não confirmado. Verifique sua caixa de entrada.')
-      } else {
-        setError(message)
+      // Validação básica
+      if (!formData.email || !formData.password) {
+        setError('Por favor, preencha todos os campos')
+        setLoading(false)
+        return
       }
-    } finally {
-      setFormLoading(false)
-    }
-  }
 
-  const handleGoogleLogin = async () => {
-    setError(null)
-    setFormLoading(true)
-    try {
-      await loginWithGoogle()
+      // Login via Supabase Auth
+      const { data, error: signInError } = await signInWithEmail(formData.email, formData.password)
+
+      if (signInError) {
+        console.error('[Login] Erro:', signInError)
+
+        // Mensagens de erro amigáveis
+        if (signInError.message.includes('Invalid login credentials')) {
+          setError('Email ou senha incorretos')
+        } else if (signInError.message.includes('Email not confirmed')) {
+          setError('Email não confirmado. Verifique sua caixa de entrada.')
+        } else {
+          setError(signInError.message)
+        }
+
+        setLoading(false)
+        return
+      }
+
+      if (!data.user) {
+        setError('Erro ao fazer login. Tente novamente.')
+        setLoading(false)
+        return
+      }
+
+      console.log('[Login] Usuário autenticado:', data.user.email)
+
+      // Verificar se usuário tem profile com client_id
+      const profileResponse = await fetch('/api/auth/verify-profile')
+      const profileData = await profileResponse.json()
+
+      if (!profileData.success) {
+        setError('Usuário sem perfil configurado. Contate o administrador.')
+        setLoading(false)
+        return
+      }
+
+      console.log('[Login] Profile verificado, client_id:', profileData.client_id)
+
+      // Redirect para destino
+      router.push(redirectTo)
+      router.refresh()
     } catch (err) {
-      console.error('[Login] Google OAuth error:', err)
-      setError('Erro ao iniciar login com Google.')
-      setFormLoading(false)
+      console.error('[Login] Erro inesperado:', err)
+      setError('Erro inesperado ao fazer login. Tente novamente.')
+      setLoading(false)
     }
   }
-
-  const handleMicrosoftLogin = async () => {
-    setError(null)
-    setFormLoading(true)
-    try {
-      await loginWithMicrosoft()
-    } catch (err) {
-      console.error('[Login] Microsoft OAuth error:', err)
-      setError('Erro ao iniciar login com Microsoft.')
-      setFormLoading(false)
-    }
-  }
-
-  const disableForm = formLoading || authLoading
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-gradient-blue">
@@ -167,7 +169,7 @@ export default function LoginPage() {
                     onChange={(event) =>
                       setFormData((prev) => ({ ...prev, email: event.target.value }))
                     }
-                    disabled={disableForm}
+                    disabled={loading}
                     className="border border-mint-500/20 bg-ink-900/60"
                   />
                 </div>
@@ -184,7 +186,7 @@ export default function LoginPage() {
                       onChange={(event) =>
                         setFormData((prev) => ({ ...prev, password: event.target.value }))
                       }
-                      disabled={disableForm}
+                      disabled={loading}
                       className="border border-mint-500/20 bg-ink-900/60 pr-12"
                     />
                     <button
@@ -192,7 +194,7 @@ export default function LoginPage() {
                       onClick={() => setShowPassword((prev) => !prev)}
                       className="absolute inset-y-0 right-3 flex items-center text-foreground/60 transition-colors hover:text-foreground"
                       aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
-                      disabled={disableForm}
+                      disabled={loading}
                     >
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
@@ -203,43 +205,13 @@ export default function LoginPage() {
                   type="submit"
                   variant="glow"
                   disabled={
-                    disableForm || !formData.email.trim() || !formData.password.trim()
+                    loading || !formData.email.trim() || !formData.password.trim()
                   }
                   className="w-full"
                 >
-                  {disableForm ? 'Entrando...' : 'Entrar'}
+                  {loading ? 'Entrando...' : 'Entrar'}
                 </Button>
               </form>
-
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t border-border/40" />
-                </div>
-                <div className="relative flex justify-center">
-                  <span className="bg-surface px-4 text-xs uppercase tracking-[0.4em] text-foreground/50">
-                    Ou continue com
-                  </span>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <Button
-                  type="button"
-                  variant="outlineMint"
-                  onClick={handleGoogleLogin}
-                  disabled={disableForm}
-                >
-                  Google
-                </Button>
-                <Button
-                  type="button"
-                  variant="outlineMint"
-                  onClick={handleMicrosoftLogin}
-                  disabled={disableForm}
-                >
-                  Microsoft
-                </Button>
-              </div>
 
               <div className="text-center text-sm text-foreground/70">
                 <p>
