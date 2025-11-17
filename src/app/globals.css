@@ -4,62 +4,53 @@
 
 @layer base {
   :root {
-    /* === UzzApp Core Palette (Mint / Black / Silver / Blue / Gold) === */
-    --background: 184 73% 6%; /* Base quase preta #031414 */
-    --foreground: 156 61% 94%; /* Texto principal suave #DDF9EE */
-    --card: 188 32% 10%; /* Superfícies secundárias #0E1F23 */
-    --card-foreground: 154 38% 88%;
-    --popover: 188 32% 10%;
-    --popover-foreground: 154 38% 88%;
-
-    --primary: 166 78% 47%; /* Mint principal #1ABC9C */
-    --primary-foreground: 180 100% 97%;
-
-    --secondary: 198 57% 43%; /* Azul confiança #2E86AB */
-    --secondary-foreground: 180 100% 97%;
-
-    --accent: 48 100% 50%; /* Destaques premium #FFD700 */
-    --accent-foreground: 33 73% 18%;
-
-    --muted: 190 24% 18%; /* Tons de apoio */
-    --muted-foreground: 180 13% 72%;
-
-    --destructive: 5 80% 55%;
-    --destructive-foreground: 0 0% 98%;
-
-    --border: 184 22% 28%;
-    --input: 184 22% 28%;
-    --ring: 166 78% 47%;
-    --radius: 0.75rem;
-
-    /* Gradientes e superfícies especiais usados na landing */
-    --surface: 188 32% 10%;
-    --surface-soft: 189 20% 16%;
-    --glow-mint: 166 78% 47% / 0.35;
-    --glow-blue: 198 57% 43% / 0.3;
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    /* WhatsApp Green Colors */
+    --primary: 142 70% 49%; /* #25D366 - WhatsApp Green */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 175 63% 35%; /* #128C7E - WhatsApp Dark Green */
+    --secondary-foreground: 0 0% 100%;
+    --muted: 120 5% 96%; /* #F0F2F5 - WhatsApp Light Gray */
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 142 70% 49%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 142 70% 49%;
+    --radius: 0.5rem;
+    /* WhatsApp specific colors */
+    --whatsapp-bg: 222 14% 93%; /* #ECE5DD - WhatsApp Chat Background */
+    --whatsapp-incoming: 0 0% 100%; /* White - Incoming messages */
+    --whatsapp-outgoing: 142 70% 89%; /* #DCF8C6 - Outgoing messages */
   }
 
   .dark {
-    /* Mantemos contraste forte no modo escuro seguindo a identidade */
-    --background: 186 68% 5%;
-    --foreground: 156 61% 94%;
-    --card: 183 50% 7%;
-    --card-foreground: 156 61% 94%;
-    --popover: 183 50% 7%;
-    --popover-foreground: 156 61% 94%;
-    --primary: 166 78% 47%;
-    --primary-foreground: 180 100% 97%;
-    --secondary: 198 57% 43%;
-    --secondary-foreground: 180 100% 97%;
-    --muted: 193 28% 14%;
-    --muted-foreground: 184 12% 70%;
-    --accent: 48 100% 50%;
-    --accent-foreground: 33 73% 18%;
-    --destructive: 5 80% 55%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 190 24% 18%;
-    --input: 190 24% 18%;
-    --ring: 166 78% 47%;
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 224.3 76.3% 48%;
   }
 }
 
@@ -69,47 +60,27 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu',
-      'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
-    background-image: radial-gradient(circle at 20% 20%, rgba(26, 188, 156, 0.15), transparent 55%),
-      radial-gradient(circle at 80% 10%, rgba(46, 134, 171, 0.12), transparent 55%),
-      linear-gradient(135deg, rgba(3, 20, 20, 1), rgba(6, 32, 36, 1));
-    background-attachment: fixed;
-  }
-
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6 {
-    font-family: 'Poppins', 'Inter', sans-serif;
-    letter-spacing: -0.01em;
-    @apply text-foreground;
-  }
-
-  code,
-  pre {
-    font-family: 'Fira Code', 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
   }
 }
 
 @layer utilities {
-  .uzzapp-glass {
-    background: linear-gradient(135deg, rgba(14, 31, 35, 0.82), rgba(6, 24, 26, 0.9));
-    box-shadow: 0 12px 40px rgba(26, 188, 156, 0.12);
-    border: 1px solid hsla(var(--primary), 0.2);
+  .whatsapp-bg {
+    background-color: hsl(var(--whatsapp-bg));
   }
-
-  .uzzapp-gradient-mint {
-    background: linear-gradient(135deg, #1abc9c, #031414);
+  .message-incoming {
+    background-color: hsl(var(--whatsapp-incoming));
   }
-
-  .uzzapp-gradient-blue {
-    background: linear-gradient(140deg, #2e86ab, #0b1c21);
+  .message-outgoing {
+    background-color: hsl(var(--whatsapp-outgoing));
   }
+}
 
-  .uzzapp-gradient-premium {
-    background: linear-gradient(135deg, #ffd700, rgba(3, 20, 20, 0.85));
+/* Minimal additions for landing page only */
+@layer base {
+  :root {
+    /* Surface colors for landing page components */
+    --surface: 188 32% 10%;
+    --surface-soft: 189 20% 16%;
   }
 }
