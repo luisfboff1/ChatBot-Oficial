@@ -1,40 +1,27 @@
 'use client'
 
-import { Suspense, useMemo, useState, type FormEvent } from 'react'
+import { useState, FormEvent } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { useRouter, useSearchParams } from 'next/navigation'
-import { Eye, EyeOff, AlertCircle } from 'lucide-react'
 import { signInWithEmail } from '@/lib/supabase-browser'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
 /**
- * Página de Login - Server-side Auth
+ * Página de Login - Supabase Auth
  *
  * Features:
- * - Login com email/senha usando Supabase Auth
- * - Feedback de sessão expirada via query (?expired=true)
- * - Verifica profile antes de redirecionar
+ * - Login com email/senha
+ * - Validação client-side
+ * - Error handling
+ * - Redirect para dashboard após login
+ *
+ * IMPORTANTE: Usuário deve ter user_profile com client_id válido
  */
-function LoginPageContent() {
+export default function LoginPage() {
   const router = useRouter()
-  const searchParams = useSearchParams()
-
-  const [formData, setFormData] = useState({ email: '', password: '' })
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [showPassword, setShowPassword] = useState(false)
-  const sessionExpired = useMemo(() => searchParams?.get('expired') === 'true', [searchParams])
-  const redirectTo = useMemo(() => {
-    const redirect = searchParams?.get('redirect') ?? '/dashboard'
-    // Only allow relative paths starting with a single /
-    if (redirect.startsWith('/') && !redirect.startsWith('//')) {
-      return redirect
-    }
-    return '/dashboard'
-  }, [searchParams])
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -43,14 +30,14 @@ function LoginPageContent() {
 
     try {
       // Validação básica
-      if (!formData.email || !formData.password) {
+      if (!email || !password) {
         setError('Por favor, preencha todos os campos')
         setLoading(false)
         return
       }
 
       // Login via Supabase Auth
-      const { data, error: signInError } = await signInWithEmail(formData.email, formData.password)
+      const { data, error: signInError } = await signInWithEmail(email, password)
 
       if (signInError) {
         console.error('[Login] Erro:', signInError)
@@ -88,8 +75,8 @@ function LoginPageContent() {
 
       console.log('[Login] Profile verificado, client_id:', profileData.client_id)
 
-      // Redirect para destino
-      router.push(redirectTo)
+      // Redirect para dashboard
+      router.push('/dashboard')
       router.refresh()
     } catch (err) {
       console.error('[Login] Erro inesperado:', err)
@@ -99,157 +86,92 @@ function LoginPageContent() {
   }
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-gradient-blue">
-      <div className="absolute inset-0 -z-10 bg-gradient-to-br from-mint-500/15 via-transparent to-azure-500/10" />
-      <div className="absolute inset-x-0 top-0 -z-10 h-64 bg-gradient-to-b from-mint-500/20 to-transparent blur-[140px]" />
-      <div className="absolute inset-y-0 right-0 -z-10 hidden w-1/3 bg-gradient-to-bl from-azure-500/20 to-transparent blur-[180px] lg:block" />
-
-      <div className="mx-auto flex min-h-screen max-w-6xl flex-col justify-center gap-12 px-6 py-24 lg:flex-row lg:items-center">
-        <div className="space-y-6 text-foreground lg:w-1/2">
-          <span className="inline-flex items-center gap-2 rounded-full border border-mint-500/40 bg-mint-500/10 px-4 py-1 text-xs font-semibold uppercase tracking-[0.4em] text-mint-300">
-            UzzApp • acesso seguro
-          </span>
-          <h1 className="text-4xl font-bold leading-tight md:text-5xl">
-            Conecte-se ao{' '}
-            <span className="bg-gradient-to-r from-mint-500 to-azure-500 bg-clip-text text-transparent">
-              UzzApp Dashboard
-            </span>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+      <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Chatbot Dashboard
           </h1>
-          <p className="text-base text-foreground/70 md:text-lg">
-            Centralize conversas, métricas e configurações do seu atendimento 24/7. Acesso exclusivo
-            para equipes autenticadas.
+          <p className="text-gray-600">
+            Faça login para acessar o sistema
           </p>
-          <ul className="space-y-3 text-sm text-foreground/70">
-            <li className="flex items-start gap-3">
-              <span className="mt-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-mint-500/20 text-xs font-semibold text-mint-300">
-                ✓
-              </span>
-              Sessão segura com Supabase Auth e tokens de curta duração.
-            </li>
-            <li className="flex items-start gap-3">
-              <span className="mt-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-mint-500/20 text-xs font-semibold text-mint-300">
-                ✓
-              </span>
-              Apenas clientes ativos com perfil configurado acessam o painel.
-            </li>
-            <li className="flex items-start gap-3">
-              <span className="mt-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-mint-500/20 text-xs font-semibold text-mint-300">
-                ✓
-              </span>
-              Preparado para login social (Google/Microsoft) e MFA do Supabase.
-            </li>
-          </ul>
         </div>
 
-        <div className="lg:w-1/2">
-          <Card className="w-full max-w-md border border-mint-500/20 bg-ink-800/80 shadow-glow backdrop-blur">
-            <CardHeader className="space-y-3 text-left">
-              <CardTitle className="text-2xl font-semibold text-mint-200">Entrar no UzzApp</CardTitle>
-              <CardDescription className="text-sm text-foreground/70">
-                Central de atendimento 24/7 com inteligência multiagente
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {sessionExpired && (
-                <div className="flex items-start gap-3 rounded-xl border border-amber-400/40 bg-amber-400/10 px-4 py-3 text-sm text-amber-200">
-                  <AlertCircle className="mt-0.5 h-4 w-4 flex-none" />
-                  <span>Sessão expirada. Entre novamente para continuar.</span>
-                </div>
-              )}
+        {/* Error Alert */}
+        {error && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-sm text-red-800">{error}</p>
+          </div>
+        )}
 
-              {error && (
-                <div className="flex items-start gap-3 rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-200">
-                  <AlertCircle className="mt-0.5 h-4 w-4 flex-none" />
-                  <span>{error}</span>
-                </div>
-              )}
+        {/* Login Form */}
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Email Input */}
+          <div>
+            <label
+              htmlFor="email"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
+              Email
+            </label>
+            <input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              disabled={loading}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+              placeholder="seu@email.com"
+              autoComplete="email"
+              required
+            />
+          </div>
 
-              <form onSubmit={handleSubmit} className="space-y-5">
-                <div className="space-y-2 text-left">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    autoComplete="email"
-                    placeholder="seu@email.com"
-                    value={formData.email}
-                    onChange={(event) =>
-                      setFormData((prev) => ({ ...prev, email: event.target.value }))
-                    }
-                    disabled={loading}
-                    className="border border-mint-500/20 bg-ink-900/60"
-                  />
-                </div>
+          {/* Password Input */}
+          <div>
+            <label
+              htmlFor="password"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
+              Senha
+            </label>
+            <input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              disabled={loading}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+              placeholder="••••••••"
+              autoComplete="current-password"
+              required
+            />
+          </div>
 
-                <div className="space-y-2 text-left">
-                  <Label htmlFor="password">Senha</Label>
-                  <div className="relative">
-                    <Input
-                      id="password"
-                      type={showPassword ? 'text' : 'password'}
-                      autoComplete="current-password"
-                      placeholder="Digite sua senha"
-                      value={formData.password}
-                      onChange={(event) =>
-                        setFormData((prev) => ({ ...prev, password: event.target.value }))
-                      }
-                      disabled={loading}
-                      className="border border-mint-500/20 bg-ink-900/60 pr-12"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword((prev) => !prev)}
-                      className="absolute inset-y-0 right-3 flex items-center text-foreground/60 transition-colors hover:text-foreground"
-                      aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
-                      disabled={loading}
-                    >
-                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </button>
-                  </div>
-                </div>
+          {/* Submit Button */}
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors disabled:bg-blue-300 disabled:cursor-not-allowed"
+          >
+            {loading ? 'Entrando...' : 'Entrar'}
+          </button>
+        </form>
 
-                <Button
-                  type="submit"
-                  variant="glow"
-                  disabled={
-                    loading || !formData.email.trim() || !formData.password.trim()
-                  }
-                  className="w-full"
-                >
-                  {loading ? 'Entrando...' : 'Entrar'}
-                </Button>
-              </form>
-
-              <div className="text-center text-sm text-foreground/70">
-                <p>
-                  Esqueceu sua senha?{' '}
-                  <Link href="/forgot-password" className="text-mint-300 hover:text-mint-200">
-                    Recuperar acesso
-                  </Link>
-                </p>
-                <p className="mt-4">
-                  Não tem conta?{' '}
-                  <Link href="/register" className="text-mint-300 hover:text-mint-200">
-                    Criar acesso
-                  </Link>
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+        {/* Footer */}
+        <div className="mt-6 text-center text-sm text-gray-600">
+          <p>
+            Não tem uma conta?{' '}
+            <Link
+              href="/register"
+              className="text-blue-600 hover:text-blue-700 font-medium hover:underline"
+            >
+              Crie uma conta
+            </Link>
+          </p>
         </div>
       </div>
     </div>
-  )
-}
-
-export default function LoginPage() {
-  return (
-    <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-gradient-blue">
-        <div className="text-mint-300">Carregando...</div>
-      </div>
-    }>
-      <LoginPageContent />
-    </Suspense>
   )
 }
