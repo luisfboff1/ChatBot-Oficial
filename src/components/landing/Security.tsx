@@ -55,7 +55,7 @@ export function Security() {
           <h3 className="text-lg font-semibold text-foreground">Checklist de implementação</h3>
           <ul className="space-y-3 text-sm text-foreground/70">
             <li>• Configurar variáveis de ambiente com as chaves do Supabase.</li>
-            <li>• Executar as migrations em <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">supabase/migrations</code>.</li>
+            <li>• Executar as migrations em <code>supabase/migrations</code>.</li>
             <li>• Revisar convites de usuários e roles no painel de admin.</li>
             <li>• Ativar monitoramento via dashboard para métricas de uso.</li>
           </ul>

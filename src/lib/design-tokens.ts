@@ -27,7 +27,7 @@ export const designTokens = {
     h2: "text-3xl font-semibold tracking-tight md:text-4xl text-foreground",
     h3: "text-xl font-semibold text-foreground",
     body: "text-base text-foreground/80 leading-relaxed",
-    badgeText:
+    badge:
       "inline-flex items-center gap-3 rounded-full border border-mint-500/40 bg-mint-500/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.4em] text-mint-300",
   },
   card: {
