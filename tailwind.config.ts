@@ -26,7 +26,7 @@ const config = {
         foreground: "hsl(var(--foreground))",
         primary: {
           DEFAULT: "hsl(var(--primary))",
-          foreground: "hsl(var(--primary-foreground))",
+          foreground: "hsl(var(--foreground))",
         },
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
@@ -52,33 +52,6 @@ const config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        mint: {
-          500: "#1ABC9C",
-          400: "#33c6ac",
-          300: "#57d4ba",
-        },
-        azure: {
-          500: "#2E86AB",
-          400: "#3f97bd",
-          300: "#5eb0d2",
-        },
-        ink: {
-          900: "#031414",
-          800: "#051b1d",
-          700: "#0a2428",
-        },
-        silver: {
-          200: "#B0B8BD",
-          100: "#DDE5EA",
-        },
-        gold: {
-          400: "#FFD700",
-          300: "#FFE166",
-        },
-        surface: {
-          DEFAULT: "hsl(var(--surface))",
-          soft: "hsl(var(--surface-soft))",
-        },
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -98,15 +71,6 @@ const config = {
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
-      },
-      boxShadow: {
-        glow: "0 12px 40px rgba(26, 188, 156, 0.18)",
-        "glow-blue": "0 16px 48px rgba(46, 134, 171, 0.22)",
-      },
-      backgroundImage: {
-        "gradient-mint": "linear-gradient(135deg, #1ABC9C, #031414)",
-        "gradient-blue": "linear-gradient(140deg, #2E86AB, #0B1C21)",
-        "gradient-premium": "linear-gradient(135deg, #FFD700, rgba(3,20,20,0.85))",
       },
     },
   },
