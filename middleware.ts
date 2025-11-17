@@ -72,19 +72,6 @@ export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname
 
   // Rotas públicas (landing, auth, marketing) não precisam de verificação
-  const publicRoutes = new Set([
-    '/',
-    '/login',
-    '/register',
-    '/contato',
-    '/servicos',
-    '/servicos/chatbot-empresarial',
-  ])
-
-  if (publicRoutes.has(pathname) || pathname.startsWith('/public')) {
-    return response
-  }
-
   // Refresh session (importante para manter usuário logado)
   const {
     data: { user },
