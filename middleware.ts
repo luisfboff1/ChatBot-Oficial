@@ -181,5 +181,16 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/admin/:path*'],
+  matcher: [
+    /*
+     * Match all routes except:
+     * - /_next/static (static files)
+     * - /_next/image (image optimization files)
+     * - /favicon.ico (favicon)
+     * - /public/* (public assets)
+     * - /api/auth/* (auth API routes)
+     * - /login, /register, /contato, /servicos, /servicos/chatbot-empresarial (public pages)
+     */
+    '/((?!_next/static|_next/image|favicon.ico|public/.*|api/auth/.*|login|register|contato|servicos|servicos/chatbot-empresarial).*)',
+  ],
 }
