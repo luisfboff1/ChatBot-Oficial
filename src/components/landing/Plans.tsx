@@ -86,7 +86,7 @@ export function Plans() {
                   href={`/register?plan=${plan.id}`}
                   className={cn(
                     buttonVariants({
-                      variant: plan.highlighted ? 'glow' : 'outlineMint',
+                      variant: plan.highlighted ? 'default' : 'outline',
                       size: 'lg',
                     }),
                     'w-full rounded-full'

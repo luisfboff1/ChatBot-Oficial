@@ -14,13 +14,13 @@ export function FinalCTA() {
         </p>
         <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
           <Link href="/login">
-            <Button variant="glow" size="lg" className="rounded-full">
+            <Button variant="default" size="lg" className="rounded-full">
               Acessar minha conta
             </Button>
           </Link>
           <Link
             href="/register"
-            className={cn(buttonVariants({ variant: 'outlineMint', size: 'lg' }), 'rounded-full')}
+            className={cn(buttonVariants({ variant: 'outline', size: 'lg' }), 'rounded-full')}
           >
             Registrar um novo tenant
           </Link>

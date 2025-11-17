@@ -16,6 +16,10 @@ import { formatResponse } from '@/nodes/formatResponse'
 import { sendWhatsAppMessage } from '@/nodes/sendWhatsAppMessage'
 import { handleHumanHandoff } from '@/nodes/handleHumanHandoff'
 import { saveChatMessage } from '@/nodes/saveChatMessage'
+// 🔧 Phase 1-3: Configuration-driven nodes
+import { checkContinuity } from '@/nodes/checkContinuity'
+import { classifyIntent } from '@/nodes/classifyIntent'
+import { detectRepetition } from '@/nodes/detectRepetition'
 import { createExecutionLogger } from '@/lib/logger'
 import { setWithExpiry } from '@/lib/redis'
 import { logOpenAIUsage, logGroqUsage, logWhisperUsage } from '@/lib/usageTracking'
@@ -291,21 +295,131 @@ export const processChatbotMessage = async (
     
     logger.logNodeSuccess('9. Get Chat History', { messageCount: chatHistory2.length })
 
-    // NODE 11: Generate AI Response (com config do cliente)
+    // 🔧 Phase 1: Check Conversation Continuity
+    logger.logNodeStart('9.5. Check Continuity', { phone: parsedMessage.phone })
+    console.log('[chatbotFlow] 🔧 Phase 1: Checking conversation continuity')
+    const continuityInfo = await checkContinuity({
+      phone: parsedMessage.phone,
+      clientId: config.id,
+    })
+    logger.logNodeSuccess('9.5. Check Continuity', {
+      isNew: continuityInfo.isNewConversation,
+      hoursSince: continuityInfo.hoursSinceLastMessage,
+    })
+    console.log(`[chatbotFlow] Continuity: ${continuityInfo.isNewConversation ? 'NEW' : 'CONTINUING'} conversation`)
+
+    // 🔧 Phase 2: Classify User Intent
+    logger.logNodeStart('9.6. Classify Intent', { messageLength: batchedContent.length })
+    console.log('[chatbotFlow] 🔧 Phase 2: Classifying user intent')
+    const intentInfo = await classifyIntent({
+      message: batchedContent,
+      clientId: config.id,
+      groqApiKey: config.apiKeys.groqApiKey,
+    })
+    logger.logNodeSuccess('9.6. Classify Intent', {
+      intent: intentInfo.intent,
+      confidence: intentInfo.confidence,
+      usedLLM: intentInfo.usedLLM,
+    })
+    console.log(`[chatbotFlow] Intent detected: ${intentInfo.intent} (${intentInfo.confidence} confidence, LLM: ${intentInfo.usedLLM})`)
+
+    // NODE 11: Generate AI Response (com config do cliente + greeting instruction)
     logger.logNodeStart('11. Generate AI Response', { messageLength: batchedContent.length, historyCount: chatHistory2.length })
-    console.log('[chatbotFlow] Generating AI response')
+    console.log('[chatbotFlow] Generating AI response with continuity context')
     const aiResponse = await generateAIResponse({
       message: batchedContent,
       chatHistory: chatHistory2,
       ragContext,
       customerName: parsedMessage.name,
       config, // 🔐 Passa config com systemPrompt e groqApiKey
+      greetingInstruction: continuityInfo.greetingInstruction, // 🔧 Phase 1: Inject greeting
     })
     logger.logNodeSuccess('11. Generate AI Response', {
       contentLength: aiResponse.content?.length || 0,
       hasToolCalls: !!aiResponse.toolCalls,
       toolCount: aiResponse.toolCalls?.length || 0
     })
+
+    // 🔧 Phase 3: Detect Repetition and regenerate if needed
+    if (aiResponse.content && aiResponse.content.trim().length > 0) {
+      logger.logNodeStart('11.5. Detect Repetition', { responseLength: aiResponse.content.length })
+      console.log('[chatbotFlow] 🔧 Phase 3: Checking for response repetition')
+      
+      const repetitionCheck = await detectRepetition({
+        phone: parsedMessage.phone,
+        clientId: config.id,
+        proposedResponse: aiResponse.content,
+      })
+      
+      logger.logNodeSuccess('11.5. Detect Repetition', {
+        isRepetition: repetitionCheck.isRepetition,
+        similarity: repetitionCheck.similarityScore,
+      })
+      
+      if (repetitionCheck.isRepetition) {
+        console.log(`[chatbotFlow] ⚠️ Repetition detected (${(repetitionCheck.similarityScore! * 100).toFixed(1)}% similar) - regenerating with variation`)
+        const originalResponse = aiResponse.content
+        
+        // Regenerate with anti-repetition instruction
+        logger.logNodeStart('11.6. Regenerate with Variation', {
+          originalResponsePreview: originalResponse.substring(0, 150) + '...'
+        })
+        
+        // Create a stronger variation instruction
+        const variationInstruction = (continuityInfo.greetingInstruction || '') + 
+          '\n\n🔴 ALERTA CRÍTICO DE REPETIÇÃO: Você DEVE criar uma resposta COMPLETAMENTE DIFERENTE da anterior. ' +
+          'Sua resposta anterior foi muito similar às respostas passadas. ' +
+          'REQUISITOS OBRIGATÓRIOS:\n' +
+          '1. Use palavras e frases DIFERENTES\n' +
+          '2. Mude a ESTRUTURA da resposta (ordem das ideias, número de parágrafos)\n' +
+          '3. Varie o ESTILO (mais formal/informal, mais direta/explicativa)\n' +
+          '4. Se possível, aborde o assunto por um ÂNGULO DIFERENTE\n' +
+          '5. NÃO copie frases ou expressões que você já usou recentemente'
+        
+        const variedResponse = await generateAIResponse({
+          message: batchedContent,
+          chatHistory: chatHistory2,
+          ragContext,
+          customerName: parsedMessage.name,
+          config: {
+            ...config,
+            settings: {
+              ...config.settings,
+              temperature: Math.min(1.0, (config.settings.temperature || 0.7) + 0.3) // Increase temperature for more variation
+            }
+          },
+          greetingInstruction: variationInstruction,
+        })
+        
+        // Check if the regenerated response is still too similar
+        const newSimilarity = await detectRepetition({
+          phone: parsedMessage.phone,
+          clientId: config.id,
+          proposedResponse: variedResponse.content || '',
+        })
+        
+        // Use the varied response
+        aiResponse.content = variedResponse.content
+        aiResponse.toolCalls = variedResponse.toolCalls
+        
+        logger.logNodeSuccess('11.6. Regenerate with Variation', {
+          originalLength: originalResponse.length,
+          newLength: variedResponse.content?.length || 0,
+          originalPreview: originalResponse.substring(0, 100),
+          newPreview: (variedResponse.content || '').substring(0, 100),
+          newSimilarity: newSimilarity.similarityScore,
+          stillRepetitive: newSimilarity.isRepetition
+        })
+        
+        if (newSimilarity.isRepetition) {
+          console.log(`[chatbotFlow] ⚠️ WARNING: Regenerated response is still repetitive (${(newSimilarity.similarityScore! * 100).toFixed(1)}% similar)`)
+        } else {
+          console.log(`[chatbotFlow] ✅ Response successfully varied (${(newSimilarity.similarityScore! * 100).toFixed(1)}% similar)`)
+        }
+      } else {
+        console.log('[chatbotFlow] ✅ No repetition detected, using original response')
+      }
+    }
 
     // 📊 Log usage to database for analytics
     if (aiResponse.usage && aiResponse.provider) {
@@ -378,16 +492,23 @@ export const processChatbotMessage = async (
     })
 
     // NODE 12: Format Response (configurável)
+    logger.logNodeStart('12. Format Response', { contentLength: aiResponse.content.length })
     let formattedMessages: string[]
     
     if (config.settings.messageSplitEnabled) {
-      logger.logNodeStart('12. Format Response', { contentLength: aiResponse.content.length })
       console.log('[chatbotFlow] ✅ Message split enabled - formatting into multiple messages')
       formattedMessages = formatResponse(aiResponse.content)
-      logger.logNodeSuccess('12. Format Response', { messageCount: formattedMessages.length })
+      logger.logNodeSuccess('12. Format Response', { 
+        messageCount: formattedMessages.length,
+        messages: formattedMessages.map((msg, idx) => `[${idx + 1}]: ${msg.substring(0, 100)}...`)
+      })
     } else {
       console.log('[chatbotFlow] ⚠️ Message split disabled - sending as single message')
       formattedMessages = [aiResponse.content]
+      logger.logNodeSuccess('12. Format Response', { 
+        messageCount: 1,
+        messages: [`[1]: ${aiResponse.content.substring(0, 100)}...`]
+      })
     }
 
     if (formattedMessages.length === 0) {

@@ -1,6 +1,6 @@
 'use client'
 
-import { MessageSquare, LayoutDashboard, Settings, BarChart3, ChevronLeft, ChevronRight } from 'lucide-react'
+import { MessageSquare, LayoutDashboard, Settings, BarChart3, ChevronLeft, ChevronRight, GitBranch, Terminal, CheckCircle } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Separator } from '@/components/ui/separator'
@@ -100,6 +100,22 @@ export function DashboardNavigation({
         />
 
         <NavItem
+          href="/dashboard/flow-architecture"
+          icon={<GitBranch className="h-5 w-5 flex-shrink-0" />}
+          label="Arquitetura do Fluxo"
+          isCollapsed={isCollapsed}
+          onClick={onLinkClick}
+        />
+
+        <NavItem
+          href="/dashboard/backend"
+          icon={<Terminal className="h-5 w-5 flex-shrink-0" />}
+          label="Backend Monitor"
+          isCollapsed={isCollapsed}
+          onClick={onLinkClick}
+        />
+
+        <NavItem
           href="/dashboard/settings"
           icon={<Settings className="h-5 w-5 flex-shrink-0" />}
           label="Configurações"
@@ -138,7 +154,10 @@ export function DashboardNavigation({
         {!isCollapsed && (
           <>
             <p>Versão 1.0.0 - Phase 3</p>
-            <p className="mt-1">Autenticação Ativa ✅</p>
+            <p className="mt-1 flex items-center gap-1">
+              <CheckCircle className="h-3 w-3 text-green-500" />
+              Autenticação Ativa
+            </p>
           </>
         )}
       </div>
