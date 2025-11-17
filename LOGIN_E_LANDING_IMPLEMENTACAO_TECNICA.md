@@ -1,8 +1,8 @@
-# Poker Manager — Documentação Técnica da Landing Page e Login
+# UzzApp — Documentação Técnica da Landing Page e Login
 
 ## 1. Visão Geral
 
-O Poker Manager é um SaaS multi-tenant construído com **Next.js 15**, **React 19** e **Supabase Auth**. A landing page (`app/page.tsx`) serve como porta de entrada pública, enquanto a página de login (`app/login/page.tsx`) autentica usuários com email/senha e provedores OAuth (Google e Microsoft). Ambas operam sobre a infraestrutura de **App Router**, com suporte a **Server Components**, **middleware de autenticação**, **contexto global de usuário** e **design tokens** centralizados.
+O UzzApp é um SaaS multi-tenant construído com **Next.js 15**, **React 19** e **Supabase Auth**. A landing page (`app/page.tsx`) serve como porta de entrada pública, enquanto a página de login (`app/login/page.tsx`) autentica usuários com email/senha e provedores OAuth (Google e Microsoft). Ambas operam sobre a infraestrutura de **App Router**, com suporte a **Server Components**, **middleware de autenticação**, **contexto global de usuário** e **design tokens** centralizados.
 
 Este documento descreve, em profundidade, como cada página é estruturada, os componentes de suporte envolvidos e como replicar a implementação em outro projeto (ex.: o chatbot em `src/app`). O objetivo é fornecer um passo a passo completo que permitirá portar a experiência visual e funcional para o novo contexto, preservando os fluxos de autenticação e os padrões de segurança.
 
