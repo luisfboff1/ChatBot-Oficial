@@ -5,7 +5,8 @@ import { cn } from '@/lib/utils'
 
 export function FinalCTA() {
   return (
-    <section className="relative overflow-hidden bg-muted py-20">
+    <section className="relative overflow-hidden py-20">
+      <div className="absolute inset-0 -z-10 bg-gradient-blue opacity-70 blur-[200px]" />
       <div className={cn(designTokens.container.lg, 'relative z-10 space-y-8 px-6 text-center')}>
         <h2 className={designTokens.typography.h2}>Pronto para entrar no UzzApp?</h2>
         <p className={designTokens.typography.body}>
@@ -13,13 +14,13 @@ export function FinalCTA() {
         </p>
         <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
           <Link href="/login">
-            <Button variant="default" size="lg" className="rounded-full">
+            <Button variant="glow" size="lg" className="rounded-full">
               Acessar minha conta
             </Button>
           </Link>
           <Link
             href="/register"
-            className={cn(buttonVariants({ variant: 'outline', size: 'lg' }), 'rounded-full')}
+            className={cn(buttonVariants({ variant: 'outlineMint', size: 'lg' }), 'rounded-full')}
           >
             Registrar um novo tenant
           </Link>
@@ -28,7 +29,7 @@ export function FinalCTA() {
           <span>Precisa de ajuda com convites, billing ou migração?</span>
           <a
             href="mailto:suporte@uzzai.dev"
-            className="text-primary transition-colors hover:text-primary/80"
+            className="text-mint-300 transition-colors hover:text-mint-200"
           >
             suporte@uzzai.dev
           </a>

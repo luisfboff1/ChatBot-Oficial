@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { designTokens } from '@/lib/design-tokens'
 import { Card } from '@/components/ui/card'
-import { buttonVariants } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
 const plans = [
@@ -42,7 +42,7 @@ const plans = [
 
 export function Plans() {
   return (
-    <section className="bg-muted py-20">
+    <section className="bg-ink-900/90 py-20">
       <div className={cn(designTokens.container.lg, designTokens.spacing.stack, 'px-6')}>
         <div className="space-y-4 text-center">
           <h2 className={designTokens.typography.h2}>Planos preparados para cada estágio</h2>
@@ -56,26 +56,26 @@ export function Plans() {
             <Card
               key={plan.id}
               className={cn(
-                'relative flex h-full flex-col border p-6',
-                plan.highlighted && 'border-primary shadow-lg'
+                'relative flex h-full flex-col border border-mint-500/20 bg-surface/85 p-6 shadow-glow',
+                plan.highlighted && 'border-mint-500/40 shadow-glow'
               )}
             >
               {plan.highlighted && (
-                <span className="absolute -top-4 left-1/2 -translate-x-1/2 rounded-full border border-primary bg-primary/20 px-4 py-1 text-xs font-semibold uppercase tracking-widest text-primary">
+                <span className="absolute -top-4 left-1/2 -translate-x-1/2 rounded-full border border-gold-400/70 bg-gold-400/20 px-4 py-1 text-xs font-semibold uppercase tracking-widest text-gold-300">
                   Mais procurado
                 </span>
               )}
 
               <div className="space-y-3 text-left">
                 <h3 className="text-xl font-semibold text-foreground">{plan.name}</h3>
-                <p className="text-3xl font-bold text-primary">{plan.price}</p>
+                <p className="text-3xl font-bold text-mint-200">{plan.price}</p>
                 <p className="text-sm text-foreground/70">{plan.description}</p>
               </div>
 
               <ul className="mt-6 space-y-3 text-sm text-foreground/70">
                 {plan.features.map((feature) => (
                   <li key={feature} className="flex items-start gap-2">
-                    <span className="mt-1 inline-flex h-2 w-2 rounded-full bg-primary" />
+                    <span className="mt-1 inline-flex h-2 w-2 rounded-full bg-mint-300" />
                     {feature}
                   </li>
                 ))}
@@ -86,7 +86,7 @@ export function Plans() {
                   href={`/register?plan=${plan.id}`}
                   className={cn(
                     buttonVariants({
-                      variant: plan.highlighted ? 'default' : 'outline',
+                      variant: plan.highlighted ? 'glow' : 'outlineMint',
                       size: 'lg',
                     }),
                     'w-full rounded-full'

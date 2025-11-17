@@ -28,7 +28,7 @@ const highlights = [
 
 export function Highlights() {
   return (
-    <section className="bg-card py-20">
+    <section className="py-20">
       <div className={cn(designTokens.container.lg, designTokens.spacing.stack, 'px-6')}>
         <div className="space-y-4 text-center">
           <h2 className={designTokens.typography.h2}>Tudo o que você precisa em um único lugar</h2>
@@ -41,9 +41,9 @@ export function Highlights() {
           {highlights.map(({ title, description, icon: Icon }) => (
             <Card
               key={title}
-              className="flex h-full flex-col gap-3 border border-primary/20 bg-card p-6"
+              className="flex h-full flex-col gap-3 border border-mint-500/20 bg-surface/85 p-6 shadow-glow"
             >
-              <Icon className="h-6 w-6 text-primary" aria-hidden />
+              <Icon className="h-6 w-6 text-mint-200" aria-hidden />
               <h3 className="text-lg font-semibold text-foreground">{title}</h3>
               <p className="text-sm text-foreground/70">{description}</p>
             </Card>

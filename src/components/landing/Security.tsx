@@ -28,7 +28,7 @@ const securityItems = [
 
 export function Security() {
   return (
-    <section className="bg-card py-20">
+    <section className="bg-ink-900/95 py-20">
       <div className={cn(designTokens.container.lg, 'grid gap-12 px-6 lg:grid-cols-[1.1fr,0.9fr]')}>
         <div className="space-y-6">
           <h2 className={designTokens.typography.h2}>Segurança e governança integradas</h2>
@@ -41,9 +41,9 @@ export function Security() {
             {securityItems.map(({ title, description, icon: Icon }) => (
               <Card
                 key={title}
-                className="flex h-full flex-col gap-2 border p-4"
+                className="flex h-full flex-col gap-2 border border-azure-500/20 bg-surface/80 p-4 shadow-glow"
               >
-                <Icon className="h-5 w-5 text-primary" aria-hidden />
+                <Icon className="h-5 w-5 text-mint-200" aria-hidden />
                 <h3 className="text-sm font-semibold text-foreground">{title}</h3>
                 <p className="text-sm text-foreground/70">{description}</p>
               </Card>
@@ -51,11 +51,11 @@ export function Security() {
           </div>
         </div>
 
-        <Card className="flex flex-col gap-4 border p-6">
+        <Card className="flex flex-col gap-4 border border-mint-500/20 bg-surface/80 p-6 shadow-glow">
           <h3 className="text-lg font-semibold text-foreground">Checklist de implementação</h3>
           <ul className="space-y-3 text-sm text-foreground/70">
             <li>• Configurar variáveis de ambiente com as chaves do Supabase.</li>
-            <li>• Executar as migrations em <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">supabase/migrations</code>.</li>
+            <li>• Executar as migrations em <code>supabase/migrations</code>.</li>
             <li>• Revisar convites de usuários e roles no painel de admin.</li>
             <li>• Ativar monitoramento via dashboard para métricas de uso.</li>
           </ul>

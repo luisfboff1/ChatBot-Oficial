@@ -5,14 +5,17 @@ import { cn } from '@/lib/utils'
 
 export function Hero() {
   return (
-    <section className="relative overflow-hidden bg-background py-24">
+    <section className="relative overflow-hidden py-24">
+      <div className="absolute inset-0 -z-10 bg-gradient-mint/60 blur-[160px]" />
+      <div className="absolute inset-y-0 right-0 -z-10 hidden w-1/3 bg-gradient-to-bl from-azure-500/30 to-transparent blur-[200px] lg:block" />
+
       <div
         className={cn(
           designTokens.container.lg,
           'relative z-10 flex flex-col items-center gap-10 px-6 text-center'
         )}
       >
-        <span className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-4 py-1 text-xs font-semibold uppercase tracking-[0.4em] text-primary">
+        <span className="inline-flex items-center gap-2 rounded-full border border-mint-500/40 bg-mint-500/10 px-4 py-1 text-xs font-semibold uppercase tracking-[0.4em] text-mint-300">
           Portal UzzApp
         </span>
 
@@ -28,13 +31,13 @@ export function Hero() {
 
         <div className="flex flex-col items-center gap-4 sm:flex-row">
           <Link href="/login">
-            <Button variant="default" size="lg" className="rounded-full">
+            <Button variant="glow" size="lg" className="rounded-full">
               Fazer login
             </Button>
           </Link>
           <Link
             href="/register"
-            className={cn(buttonVariants({ variant: 'outline', size: 'lg' }), 'rounded-full')}
+            className={cn(buttonVariants({ variant: 'outlineMint', size: 'lg' }), 'rounded-full')}
           >
             Criar conta para meu time
           </Link>
