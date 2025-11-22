@@ -40,6 +40,11 @@ class ExecutionLogger {
     this.clientId = clientId || null
 
     if (this.supabase) {
+      console.log(`[EXECUTION] Starting execution ${this.executionId}`, {
+        clientId: this.clientId,
+        metadata: metadata || {}
+      })
+      
       // @ts-ignore - execution_logs table might not exist until migration is run
       this.supabase.from('execution_logs').insert({
         execution_id: this.executionId,
@@ -61,6 +66,11 @@ class ExecutionLogger {
     const startTime = Date.now()
 
     // Fire-and-forget - não bloqueia execução
+    console.log(`[NODE START] ${nodeName}`, {
+      execution_id: this.executionId,
+      input: input ? JSON.stringify(input).substring(0, 200) : 'no input'
+    })
+    
     // @ts-ignore - execution_logs table optional
     this.supabase.from('execution_logs').insert({
       execution_id: this.executionId,
@@ -73,9 +83,11 @@ class ExecutionLogger {
     // @ts-ignore
     }).then(result => {
       if (result.error) {
+        console.error(`[NODE START ERROR] Failed to log ${nodeName}:`, result.error)
       }
     // @ts-ignore
     }).catch((err: any) => {
+      console.error(`[NODE START EXCEPTION] Exception logging ${nodeName}:`, err)
     })
   }
 
@@ -86,6 +98,12 @@ class ExecutionLogger {
     const duration = startTime ? Date.now() - startTime : undefined
 
     // Fire-and-forget - não bloqueia execução
+    console.log(`[NODE SUCCESS] ${nodeName}`, {
+      execution_id: this.executionId,
+      duration_ms: duration,
+      output: output ? JSON.stringify(output).substring(0, 200) : 'no output'
+    })
+    
     // @ts-ignore - execution_logs table optional
     this.supabase
       .from('execution_logs')
@@ -101,9 +119,11 @@ class ExecutionLogger {
       // @ts-ignore
       .then(result => {
         if (result.error) {
+          console.error(`[NODE SUCCESS ERROR] Failed to update ${nodeName}:`, result.error)
         }
       // @ts-ignore
       }).catch((err: any) => {
+        console.error(`[NODE SUCCESS EXCEPTION] Exception updating ${nodeName}:`, err)
       })
   }
 
@@ -112,6 +132,14 @@ class ExecutionLogger {
     if (!this.executionId || !this.supabase) return
 
     // Fire-and-forget - não bloqueia execução
+    console.error(`[NODE ERROR] ${nodeName}`, {
+      execution_id: this.executionId,
+      error: {
+        message: error.message || String(error),
+        name: error.name
+      }
+    })
+    
     // @ts-ignore - execution_logs table optional
     this.supabase
       .from('execution_logs')
@@ -130,9 +158,11 @@ class ExecutionLogger {
       // @ts-ignore
       .then(result => {
         if (result.error) {
+          console.error(`[NODE ERROR UPDATE ERROR] Failed to update ${nodeName}:`, result.error)
         }
       // @ts-ignore
       }).catch((err: any) => {
+        console.error(`[NODE ERROR UPDATE EXCEPTION] Exception updating ${nodeName}:`, err)
       })
   }
 
@@ -161,6 +191,10 @@ class ExecutionLogger {
     if (!this.executionId || !this.supabase) return
 
     // Fire-and-forget - não bloqueia execução
+    console.log(`[EXECUTION END] Execution ${this.executionId} finished with status: ${status}`, {
+      clientId: this.clientId
+    })
+    
     // @ts-ignore - execution_logs table optional
     this.supabase.from('execution_logs').insert({
       execution_id: this.executionId,
@@ -171,9 +205,11 @@ class ExecutionLogger {
     // @ts-ignore
     }).then(result => {
       if (result.error) {
+        console.error(`[EXECUTION END ERROR] Failed to log execution end:`, result.error)
       }
     // @ts-ignore
     }).catch((err: any) => {
+      console.error(`[EXECUTION END EXCEPTION] Exception logging execution end:`, err)
     })
   }
 
