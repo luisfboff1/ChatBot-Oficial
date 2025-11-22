@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Check, X, Loader2, Phone, CheckCheck, Eye, AlertTriangle, Search, Globe, Mail, Send, ScrollText, RefreshCw, Pause, RotateCw } from 'lucide-react'
+import { Check, X, Loader2, Phone, CheckCheck, Eye, AlertTriangle, Search, Globe, Mail, Send, ScrollText, RefreshCw, Pause, RotateCw, Bug } from 'lucide-react'
 import { createBrowserClient } from '@/lib/supabase-browser'
 
 interface ExecutionLog {
@@ -42,6 +42,7 @@ export default function BackendMonitorPage() {
   const [autoScroll, setAutoScroll] = useState(true)
   const [statusFilter, setStatusFilter] = useState<StatusFilterType>('all')
   const [phoneFilter, setPhoneFilter] = useState<string>('')
+  const [debugInfo, setDebugInfo] = useState<any>(null)
   const supabase = createBrowserClient() // ⚡ Para autenticação multi-tenant
 
   // Função para buscar logs - sempre busca os últimos 500 logs do Supabase
@@ -86,6 +87,34 @@ export default function BackendMonitorPage() {
       console.error('Error fetching logs:', error)
     }
   }, [selectedExecution, supabase])
+
+  // Função para buscar informações de debug
+  const fetchDebugInfo = useCallback(async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+
+      if (!session) {
+        console.error('[BackendMonitor] User not authenticated for debug')
+        return
+      }
+
+      const response = await fetch('/api/backend/debug-logs', {
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json'
+        }
+      })
+      const data = await response.json()
+
+      if (data.success) {
+        setDebugInfo(data.debug)
+        console.log('[BackendMonitor] 🔍 Debug Info:', data.debug)
+        console.log('[BackendMonitor] 📋 Diagnosis:', data.debug.diagnosis)
+      }
+    } catch (error) {
+      console.error('Error fetching debug info:', error)
+    }
+  }, [supabase])
 
   // Auto-refresh
   useEffect(() => {
@@ -366,8 +395,66 @@ export default function BackendMonitorPage() {
             <RotateCw className="h-4 w-4" />
             <span className="hidden sm:inline">Atualizar</span>
           </Button>
+          <Button onClick={() => fetchDebugInfo()} variant="outline" size="sm" className="gap-2" title="Diagnóstico de problemas">
+            <Bug className="h-4 w-4" />
+            <span className="hidden sm:inline">Debug</span>
+          </Button>
         </div>
       </div>
+
+      {/* Debug Info Display */}
+      {debugInfo && (
+        <Card className="border-yellow-500 bg-yellow-50 dark:bg-yellow-950">
+          <CardHeader>
+            <CardTitle className="text-sm flex items-center gap-2">
+              <Bug className="h-4 w-4" />
+              Informações de Diagnóstico
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3 text-xs font-mono">
+              <div>
+                <strong>Usuário Autenticado:</strong>
+                <div className="ml-4 text-muted-foreground">
+                  ID: {debugInfo.authenticatedUser?.id || 'N/A'}<br />
+                  Client ID: {debugInfo.authenticatedUser?.clientId || '❌ Não definido'}
+                </div>
+              </div>
+              <div>
+                <strong>Database:</strong>
+                <div className="ml-4 text-muted-foreground">
+                  Total de logs: {debugInfo.database?.totalExecutionLogs || 0}<br />
+                  Logs sem client_id: {debugInfo.database?.logsWithoutClientId || 0}<br />
+                  Logs com client_id: {debugInfo.database?.logsWithClientId || 0}<br />
+                  Client IDs únicos: {debugInfo.database?.uniqueClientIdsInLogs?.join(', ') || 'Nenhum'}
+                </div>
+              </div>
+              <div>
+                <strong>Match Status:</strong>
+                <div className="ml-4">{debugInfo.clientIdMatch}</div>
+              </div>
+              <div>
+                <strong>Diagnóstico:</strong>
+                <div className="ml-4 whitespace-pre-wrap">
+                  {debugInfo.diagnosis?.join('\n')}
+                </div>
+              </div>
+              {debugInfo.recentLogs && debugInfo.recentLogs.length > 0 && (
+                <div>
+                  <strong>Últimos logs (amostra):</strong>
+                  <div className="ml-4 text-muted-foreground">
+                    {debugInfo.recentLogs.slice(0, 3).map((log: any) => (
+                      <div key={log.id}>
+                        • {log.node_name} - client_id: {log.client_id || '❌ null'} - {log.timestamp}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {executions.length === 0 ? (
         <Card>

@@ -74,10 +74,30 @@ export async function GET(request: NextRequest) {
     const { data: { user }, error: authError } = await supabase.auth.getUser()
 
     if (authError || !user) {
+      console.error('[BACKEND STREAM API] Auth error:', authError)
       return NextResponse.json(
         { error: 'Invalid or expired token' },
         { status: 401 }
       )
+    }
+
+    // 🔍 DEBUG: Log do usuário autenticado
+    console.log('[BACKEND STREAM API] 👤 Authenticated user:', {
+      id: user.id,
+      email: user.email
+    })
+
+    // 🔍 DEBUG: Buscar client_id do usuário no user_profiles
+    const { data: userProfile, error: profileError } = await supabase
+      .from('user_profiles')
+      .select('client_id')
+      .eq('id', user.id)
+      .single()
+
+    if (profileError) {
+      console.error('[BACKEND STREAM API] ❌ Error fetching user profile:', profileError)
+    } else {
+      console.log('[BACKEND STREAM API] 🏢 User client_id:', userProfile?.client_id)
     }
 
     // ================================================================
@@ -99,10 +119,12 @@ export async function GET(request: NextRequest) {
       query = query.gt('timestamp', since)
     }
 
+    console.log('[BACKEND STREAM API] 🔍 Query params:', { executionId, limit, since })
+
     const { data, error } = await query
 
     if (error) {
-      console.error('[BACKEND STREAM API] Error:', error)
+      console.error('[BACKEND STREAM API] ❌ Error querying execution_logs:', error)
       return NextResponse.json(
         {
           success: false,
@@ -112,6 +134,13 @@ export async function GET(request: NextRequest) {
         { status: 500 }
       )
     }
+
+    // 🔍 DEBUG: Log de resultados
+    console.log('[BACKEND STREAM API] 📊 Query results:', {
+      totalLogs: data?.length || 0,
+      uniqueExecutionIds: data ? new Set(data.map((log: any) => log.execution_id)).size : 0,
+      sampleClientIds: data?.slice(0, 3).map((log: any) => log.client_id) || []
+    })
 
     // ================================================================
     // AGRUPA LOGS POR EXECUTION_ID
