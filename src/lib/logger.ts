@@ -21,6 +21,18 @@ class ExecutionLogger {
   private executionId: string | null = null
   private clientId: string | null = null // ⚡ Tenant ID for multi-tenant isolation
 
+  // Helper para stringify seguro (evita erros de referência circular)
+  private safeStringify(data: any, maxLength: number = 200): string {
+    if (!data) return 'no data'
+    
+    try {
+      const str = JSON.stringify(data)
+      return str.length > maxLength ? str.substring(0, maxLength) + '...' : str
+    } catch (err) {
+      return '[unable to stringify - circular reference or non-serializable object]'
+    }
+  }
+
   constructor() {
     // Initialize Supabase client only in server context
     if (typeof window === 'undefined') {
@@ -66,17 +78,10 @@ class ExecutionLogger {
     const startTime = Date.now()
 
     // Fire-and-forget - não bloqueia execução
-    try {
-      console.log(`[NODE START] ${nodeName}`, {
-        execution_id: this.executionId,
-        input: input ? JSON.stringify(input).substring(0, 200) : 'no input'
-      })
-    } catch (err) {
-      console.log(`[NODE START] ${nodeName}`, {
-        execution_id: this.executionId,
-        input: '[unable to stringify input]'
-      })
-    }
+    console.log(`[NODE START] ${nodeName}`, {
+      execution_id: this.executionId,
+      input: this.safeStringify(input)
+    })
     
     // @ts-ignore - execution_logs table optional
     this.supabase.from('execution_logs').insert({
@@ -105,19 +110,11 @@ class ExecutionLogger {
     const duration = startTime ? Date.now() - startTime : undefined
 
     // Fire-and-forget - não bloqueia execução
-    try {
-      console.log(`[NODE SUCCESS] ${nodeName}`, {
-        execution_id: this.executionId,
-        duration_ms: duration,
-        output: output ? JSON.stringify(output).substring(0, 200) : 'no output'
-      })
-    } catch (err) {
-      console.log(`[NODE SUCCESS] ${nodeName}`, {
-        execution_id: this.executionId,
-        duration_ms: duration,
-        output: '[unable to stringify output]'
-      })
-    }
+    console.log(`[NODE SUCCESS] ${nodeName}`, {
+      execution_id: this.executionId,
+      duration_ms: duration,
+      output: this.safeStringify(output)
+    })
     
     // @ts-ignore - execution_logs table optional
     this.supabase
