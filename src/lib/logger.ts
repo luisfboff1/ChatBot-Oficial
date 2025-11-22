@@ -66,10 +66,17 @@ class ExecutionLogger {
     const startTime = Date.now()
 
     // Fire-and-forget - não bloqueia execução
-    console.log(`[NODE START] ${nodeName}`, {
-      execution_id: this.executionId,
-      input: input ? JSON.stringify(input).substring(0, 200) : 'no input'
-    })
+    try {
+      console.log(`[NODE START] ${nodeName}`, {
+        execution_id: this.executionId,
+        input: input ? JSON.stringify(input).substring(0, 200) : 'no input'
+      })
+    } catch (err) {
+      console.log(`[NODE START] ${nodeName}`, {
+        execution_id: this.executionId,
+        input: '[unable to stringify input]'
+      })
+    }
     
     // @ts-ignore - execution_logs table optional
     this.supabase.from('execution_logs').insert({
@@ -98,11 +105,19 @@ class ExecutionLogger {
     const duration = startTime ? Date.now() - startTime : undefined
 
     // Fire-and-forget - não bloqueia execução
-    console.log(`[NODE SUCCESS] ${nodeName}`, {
-      execution_id: this.executionId,
-      duration_ms: duration,
-      output: output ? JSON.stringify(output).substring(0, 200) : 'no output'
-    })
+    try {
+      console.log(`[NODE SUCCESS] ${nodeName}`, {
+        execution_id: this.executionId,
+        duration_ms: duration,
+        output: output ? JSON.stringify(output).substring(0, 200) : 'no output'
+      })
+    } catch (err) {
+      console.log(`[NODE SUCCESS] ${nodeName}`, {
+        execution_id: this.executionId,
+        duration_ms: duration,
+        output: '[unable to stringify output]'
+      })
+    }
     
     // @ts-ignore - execution_logs table optional
     this.supabase
