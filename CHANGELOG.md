@@ -5,7 +5,19 @@ Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
-## [3.0.0] - 2025-11-22 (Current) ✅ PRODUÇÃO
+## [3.0.1] - 2025-11-23 (Current) ✅ PRODUÇÃO
+
+### Fixed
+- **Analytics - Weekly Chart**: Corrigido bug onde o gráfico semanal não mostrava os dias mais recentes
+  - A função `get_weekly_evolution` usava `DATE_TRUNC('week', NOW())` que excluía dados da semana atual incompleta
+  - Alterado para usar `NOW()` diretamente, incluindo todos os dados até o momento atual
+  - Agora o gráfico semanal mostra dados consistentes com o gráfico diário
+  - Migração: `migrations/20251123_fix_weekly_evolution_include_current_week.sql`
+  - Documentação: `docs/FIX_WEEKLY_CHART_TESTING.md` e `docs/FIX_WEEKLY_CHART_VISUAL_GUIDE.md`
+
+---
+
+## [3.0.0] - 2025-11-22 ✅ PRODUÇÃO
 
 ### 🎉 Major: Phase 4 - RBAC + Auth + Admin Panel
 
