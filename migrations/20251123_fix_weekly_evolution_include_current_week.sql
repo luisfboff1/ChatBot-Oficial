@@ -41,8 +41,12 @@ BEGIN
       SUM(ul.cost_usd) as cost
     FROM usage_logs ul
     WHERE ul.client_id = p_client_id
-      -- FIX: Changed from DATE_TRUNC('week', NOW()) to NOW()
-      -- This includes data from the current incomplete week
+      -- FIX: Changed from DATE_TRUNC('week', NOW()) - ((p_weeks - 1) || ' weeks') to NOW() - (p_weeks || ' weeks')
+      -- Original was trying to get 12 weeks but excluded current week by starting from Monday
+      -- New logic: Get exactly p_weeks of data up to NOW (consistent with get_daily_usage)
+      -- Example: When p_weeks=12 and today is Wed Nov 23:
+      --   - NOW() - 12 weeks = Sep 2 to Nov 23 (exactly 12 weeks, includes current week) ✅
+      --   - Old: Mon Nov 21 - 11 weeks = Sep 8 to Nov 20 (excludes Nov 21-23) ❌
       AND ul.created_at >= NOW() - (p_weeks || ' weeks')::INTERVAL
     GROUP BY DATE_TRUNC('week', ul.created_at), EXTRACT(WEEK FROM ul.created_at), ul.source
   )
