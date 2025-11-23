@@ -168,6 +168,9 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Function: Get weekly evolution (last 12 weeks)
+-- NOTE: This function has a bug fixed in migration 20251123_fix_weekly_evolution_include_current_week.sql
+-- The bug: Using DATE_TRUNC('week', NOW()) excludes data from the current incomplete week
+-- Fixed version uses NOW() directly to include all data up to the current moment
 CREATE OR REPLACE FUNCTION get_weekly_evolution(
   p_client_id UUID,
   p_weeks INTEGER DEFAULT 12
