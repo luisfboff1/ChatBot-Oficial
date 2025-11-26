@@ -25,46 +25,43 @@ export async function GET(request: NextRequest) {
     const offset = parseInt(searchParams.get("offset") || "0");
 
     // 🔐 SECURITY: Filter by authenticated user's client_id
-    // OTIMIZAÇÃO: Uma única query SQL com JOINs e agregações
-    // Isso elimina o problema N+1 (antes eram 1 + N*2 queries)
+    // OTIMIZAÇÃO: Query simplificada com LATERAL JOIN para melhor performance
+    // Usa índices em (client_id, session_id, created_at DESC)
     const sqlQuery = `
-      WITH customer_stats AS (
+      SELECT 
+        c.telefone,
+        c.nome,
+        c.status,
+        c.created_at as customer_created_at,
+        c.last_read_at,
+        COALESCE(stats.message_count, 0) as message_count,
+        stats.last_message_time,
+        COALESCE(stats.unread_count, 0) as unread_count,
+        last_msg.message as last_message_json
+      FROM clientes_whatsapp c
+      -- Estatísticas agregadas usando índice (client_id, session_id)
+      LEFT JOIN LATERAL (
         SELECT 
-          c.telefone,
-          c.nome,
-          c.status,
-          c.created_at as customer_created_at,
-          c.last_read_at,
-          COUNT(h.id) as message_count,
+          COUNT(*) as message_count,
           MAX(h.created_at) as last_message_time,
-          -- Count unread messages (messages after last_read_at)
-          COUNT(CASE 
-            WHEN c.last_read_at IS NULL OR h.created_at > c.last_read_at 
-            THEN 1 
-            ELSE NULL 
-          END) as unread_count,
-          (
-            SELECT h2.message 
-            FROM n8n_chat_histories h2 
-            WHERE h2.session_id = CAST(c.telefone AS TEXT)
-              AND (h2.client_id = $1 OR h2.client_id IS NULL)
-            ORDER BY h2.created_at DESC 
-            LIMIT 1
-          ) as last_message_json
-        FROM clientes_whatsapp c
-        LEFT JOIN n8n_chat_histories h ON CAST(c.telefone AS TEXT) = h.session_id
+          COUNT(*) FILTER (WHERE c.last_read_at IS NULL OR h.created_at > c.last_read_at) as unread_count
+        FROM n8n_chat_histories h
+        WHERE h.session_id = CAST(c.telefone AS TEXT)
           AND (h.client_id = $1 OR h.client_id IS NULL)
-        WHERE EXISTS (
-          SELECT 1 
-          FROM n8n_chat_histories h3 
-          WHERE h3.session_id = CAST(c.telefone AS TEXT)
-            AND (h3.client_id = $1 OR h3.client_id IS NULL)
-        )
+      ) stats ON true
+      -- Última mensagem usando índice (session_id, created_at DESC)
+      LEFT JOIN LATERAL (
+        SELECT h2.message
+        FROM n8n_chat_histories h2
+        WHERE h2.session_id = CAST(c.telefone AS TEXT)
+          AND (h2.client_id = $1 OR h2.client_id IS NULL)
+        ORDER BY h2.created_at DESC
+        LIMIT 1
+      ) last_msg ON true
+      WHERE c.client_id = $1
+        AND stats.message_count > 0
         ${status ? "AND c.status = $2" : ""}
-        GROUP BY c.telefone, c.nome, c.status, c.created_at, c.last_read_at
-      )
-      SELECT * FROM customer_stats
-      ORDER BY last_message_time DESC NULLS LAST
+      ORDER BY stats.last_message_time DESC NULLS LAST
       LIMIT $${status ? "3" : "2"} OFFSET $${status ? "4" : "3"}
     `;
 

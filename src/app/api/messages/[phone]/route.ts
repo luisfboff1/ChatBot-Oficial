@@ -6,6 +6,9 @@ import { getClientIdFromSession } from '@/lib/supabase-server'
 
 export const dynamic = 'force-dynamic'
 
+// Default limit for messages - optimizes initial load
+const DEFAULT_MESSAGE_LIMIT = 100
+
 interface RouteParams {
   params: {
     phone: string
@@ -33,36 +36,42 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       )
     }
 
-
-    // Debug: Query direta via PostgreSQL para comparar
-    try {
-      const pgResult = await query<any>(
-        `SELECT COUNT(*) as count FROM n8n_chat_histories 
-         WHERE session_id = $1 
-         AND (client_id = $2 OR client_id IS NULL)`,
-        [phone, clientId]
-      )
-    } catch (pgError) {
-      console.error('[API Messages] PostgreSQL count error:', pgError)
-    }
-
+    // Parse pagination parameters
+    const searchParams = request.nextUrl.searchParams
+    const limit = parseInt(searchParams.get('limit') || String(DEFAULT_MESSAGE_LIMIT))
+    const before = searchParams.get('before') // Cursor for pagination (message ID)
 
     // 🔐 SECURITY: Filter messages by authenticated user's client_id
-    // Buscar TODAS as mensagens via PostgreSQL direto (sem limite)
-    // Motivo: Supabase pode ter limites de paginação que não queremos
+    // OTIMIZAÇÃO: Buscar mensagens com limite, usando índice (session_id, created_at DESC)
+    // Para paginação com cursor, buscar mensagens antes de um ID específico
 
-    const pgMessages = await query<any>(
-      `SELECT id, session_id, message, created_at
-       FROM n8n_chat_histories
-       WHERE session_id = $1
-       AND (client_id = $2 OR client_id IS NULL)
-       ORDER BY created_at DESC`,  // DESC: mais recentes primeiro
-      [phone, clientId]
-    )
-
+    let pgMessages
+    if (before) {
+      // Pagination: get messages before a specific ID
+      pgMessages = await query<any>(
+        `SELECT id, session_id, message, created_at
+         FROM n8n_chat_histories
+         WHERE session_id = $1
+         AND (client_id = $2 OR client_id IS NULL)
+         AND id < $3
+         ORDER BY created_at DESC
+         LIMIT $4`,
+        [phone, clientId, before, limit]
+      )
+    } else {
+      // Initial load: get most recent messages
+      pgMessages = await query<any>(
+        `SELECT id, session_id, message, created_at
+         FROM n8n_chat_histories
+         WHERE session_id = $1
+         AND (client_id = $2 OR client_id IS NULL)
+         ORDER BY created_at DESC
+         LIMIT $3`,
+        [phone, clientId, limit]
+      )
+    }
 
     const data = pgMessages.rows
-    const error = null
 
     // Reverter ordem para exibir antigas primeiro (como esperado pela UI)
     const dataReversed = (data || []).reverse()
@@ -108,10 +117,24 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       }
     })
 
+    // Get total count for pagination info (cached via index)
+    const countResult = await query<any>(
+      `SELECT COUNT(*) as total FROM n8n_chat_histories 
+       WHERE session_id = $1 
+       AND (client_id = $2 OR client_id IS NULL)`,
+      [phone, clientId]
+    )
+    const total = parseInt(countResult.rows[0]?.total || '0')
+
+    // Check if there are more messages (for infinite scroll)
+    const hasMore = messages.length > 0 && messages.length === limit && total > limit
+
     return NextResponse.json({
       messages,
-      total: messages.length,
+      total,
       phone,
+      hasMore,
+      limit,
     }, {
       headers: {
         'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
