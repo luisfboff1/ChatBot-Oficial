@@ -127,7 +127,8 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     const total = parseInt(countResult.rows[0]?.total || '0')
 
     // Check if there are more messages (for infinite scroll)
-    const hasMore = messages.length > 0 && messages.length === limit && total > limit
+    // hasMore is true if we fetched a full page AND there are more total messages
+    const hasMore = messages.length === limit && total > messages.length
 
     return NextResponse.json({
       messages,

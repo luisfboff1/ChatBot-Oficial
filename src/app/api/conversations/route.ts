@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
     const offset = parseInt(searchParams.get("offset") || "0");
 
     // 🔐 SECURITY: Filter by authenticated user's client_id
-    // OTIMIZAÇÃO: Query simplificada com LATERAL JOIN para melhor performance
+    // OTIMIZAÇÃO: Query com LATERAL JOIN para melhor performance
     // Usa índices em (client_id, session_id, created_at DESC)
     const sqlQuery = `
       SELECT 
@@ -36,7 +36,11 @@ export async function GET(request: NextRequest) {
         c.last_read_at,
         COALESCE(stats.message_count, 0) as message_count,
         stats.last_message_time,
-        COALESCE(stats.unread_count, 0) as unread_count,
+        -- Calculate unread_count in outer query where c.last_read_at is accessible
+        CASE 
+          WHEN c.last_read_at IS NULL THEN COALESCE(stats.message_count, 0)
+          ELSE COALESCE(stats.unread_since_last_read, 0)
+        END as unread_count,
         last_msg.message as last_message_json
       FROM clientes_whatsapp c
       -- Estatísticas agregadas usando índice (client_id, session_id)
@@ -44,7 +48,8 @@ export async function GET(request: NextRequest) {
         SELECT 
           COUNT(*) as message_count,
           MAX(h.created_at) as last_message_time,
-          COUNT(*) FILTER (WHERE c.last_read_at IS NULL OR h.created_at > c.last_read_at) as unread_count
+          -- Count messages after last_read_at - pass the value for outer calculation
+          COUNT(*) FILTER (WHERE h.created_at > c.last_read_at) as unread_since_last_read
         FROM n8n_chat_histories h
         WHERE h.session_id = CAST(c.telefone AS TEXT)
           AND (h.client_id = $1 OR h.client_id IS NULL)
