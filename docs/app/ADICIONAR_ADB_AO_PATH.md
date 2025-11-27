@@ -10,7 +10,7 @@ $env:Path += ";$env:LOCALAPPDATA\Android\Sdk\platform-tools"
 
 **Funciona apenas nesta sessão do PowerShell.** Feche e reabra, precisa executar novamente.
 
----
+---oi
 
 ## ✅ Solução Permanente (Recomendado)
 
